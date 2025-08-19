@@ -3,16 +3,16 @@
 import PackageDescription
 
 let package = Package(
-    name: "ClicorePackage",
+    name: "Clicore",
     products: [
         .library(
             name: "Clicore",
-            targets: ["ClicoreTarget"],
+            targets: ["Clicore"],
         ),
     ],
     targets: [
         .target(
-            name: "ClicoreTarget",
+            name: "Clicore",
             path: ".",
             exclude: [
                 "LICENCE.md",
