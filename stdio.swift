@@ -32,7 +32,7 @@ import Foundation
 
  Data values are a mix of enums and structs, accessed via the `Stdio` namespace.
 
- Functions are static and so are likewised accessed via the `Stdio` namespace.
+ Functions are static and so are likewise accessed via the `Stdio` namespace.
  */
 struct Stdio {
 
