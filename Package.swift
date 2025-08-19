@@ -14,11 +14,6 @@ let package = Package(
         .target(
             name: "Clicore",
             path: "Sources",
-            //exclude: [
-            //    "LICENCE.md",
-            //    "README.md",
-            //    "clicore.code-workspace",
-            //],
         ),
     ]
 )
