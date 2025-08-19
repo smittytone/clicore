@@ -358,15 +358,15 @@ public struct Stdio {
 /*
  These extension initialisers are required by `Stdio`.
  */
-extension String {
+public extension String {
 
-    init(_ colour: Stdio.ShellColour, _ background: Bool = false) {
+    public init(_ colour: Stdio.ShellColour, _ background: Bool = false) {
 
         self = background ? colour.background() : colour.foreground()
     }
 
 
-    init(_ style: Stdio.ShellStyle, _ on: Bool = true) {
+    public init(_ style: Stdio.ShellStyle, _ on: Bool = true) {
 
         self = on ? style.on() : style.off()
     }

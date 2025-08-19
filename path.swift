@@ -106,10 +106,10 @@ public struct Path {
 /*
  This extension property is required by the path functions.
  */
-extension Data {
+public extension Data {
 
     // Return data as an array of bytes
-    var bytes: [UInt8] {
+    public var bytes: [UInt8] {
         return [UInt8](self)
     }
 }
