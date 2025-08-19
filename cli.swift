@@ -40,7 +40,7 @@ struct Cli {
      - Parameters:
         - args The arguments from the command line.
 
-     - Returns Regular args plus converted ones.
+     - Returns: Regular args plus converted ones.
      */
     static func unify(args: [String]) -> [String] {
 
@@ -81,8 +81,8 @@ struct Cli {
     - Parameters:
        - envVar The environment variable, eg. `TERM`.
 
-    - Returns The environment variable's value as a string,
-              or an empty string on error/absence.
+    - Returns: The environment variable's value as a string,
+               or an empty string on error/absence.
      */
     static func getEnvVar(_ envVar: String) -> String {
 

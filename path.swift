@@ -34,10 +34,10 @@ struct Path {
     /**
      Convert a partial path to an absolute path.
 
-     - Parameters
-     - relativePath: The partial path.
+     - Parameters:
+        - relativePath The partial path.
 
-     - Returns The generated absolute path.
+     - Returns: The generated absolute path.
      */
     static func getFullPath(_ relativePath: String) -> String {
 
@@ -58,10 +58,10 @@ struct Path {
     /**
      Add the the current working directory to the supplied relative path - and then resolve it.
 
-     - Parameters
-     - relativePath: The partial path.
+     - Parameters:
+        - relativePath The partial path.
 
-     - Returns The generated absolute path.
+     - Returns: The generated absolute path.
      */
     static func processRelativePath(_ relativePath: String) -> String {
 
@@ -73,10 +73,10 @@ struct Path {
     /**
      Check if a path references a directory.
 
-     - Parameters
-     - absolutePath: An absolute path to a file or directory.
+     - Parameters:
+        - absolutePath An absolute path to a file or directory.
 
-     - Returns `true` if the path references an existing directory, otherwise `false`.
+     - Returns: `true` if the path references an existing directory, otherwise `false`.
      */
     static func doesPathReferenceDirectory(_ absolutePath: String) -> Bool {
 
@@ -89,10 +89,10 @@ struct Path {
     /**
      Load a named file's contents into Data.
 
-     - Parameters
-     - filePath: An absolute path to a file.
+     - Parameters:
+        - filePath: An absolute path to a file.
 
-     - Returns The file data, or an empty array on error.
+     - Returns: The file data, or an empty array on error.
      */
     static func getFileContents(_ filepath: String) -> ArraySlice<UInt8> {
 
