@@ -9,6 +9,7 @@ let package = Package(
             name: "Clicore",
             targets: ["ClicoreTarget"],
         ),
+    ],
     targets: [
         .target(
             name: "ClicoreTarget",
