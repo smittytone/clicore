@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
     name: "Clicore",
     products: [
-        .library(name: "Clicore", targets: ["caper"]),
+        .library(name: "Clicore", targets: ["clicore"]),
     targets: [
         .target(
             name: "clicore",
