@@ -3,10 +3,10 @@
 import PackageDescription
 
 let package = Package(
-    name: "clicore",
+    name: "Clicore",
     targets: [
         .target(
-            name: "clicore",
+            name: "Clicore",
             path: ".",
         )
     ]
