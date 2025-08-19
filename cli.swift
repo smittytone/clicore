@@ -42,7 +42,7 @@ public struct Cli {
 
      - Returns: Regular args plus converted ones.
      */
-    static func unify(args: [String]) -> [String] {
+    public static func unify(args: [String]) -> [String] {
 
         var newArgs: [String] = []
 
@@ -84,7 +84,7 @@ public struct Cli {
     - Returns: The environment variable's value as a string,
                or an empty string on error/absence.
      */
-    static func getEnvVar(_ envVar: String) -> String {
+    public static func getEnvVar(_ envVar: String) -> String {
 
         guard let rawValue = getenv(envVar) else { return "" }
         return String(utf8String: rawValue) ?? ""

@@ -39,7 +39,7 @@ public struct Path {
 
      - Returns: The generated absolute path.
      */
-    static func getFullPath(_ relativePath: String) -> String {
+    public static func getFullPath(_ relativePath: String) -> String {
 
         // Standardise the path as best as we can (this covers most cases)
         var absolutePath: String = (relativePath as NSString).standardizingPath
@@ -63,7 +63,7 @@ public struct Path {
 
      - Returns: The generated absolute path.
      */
-    static func processRelativePath(_ relativePath: String) -> String {
+    public static func processRelativePath(_ relativePath: String) -> String {
 
         let absolutePath = FileManager.default.currentDirectoryPath + "/" + relativePath
         return (absolutePath as NSString).standardizingPath
@@ -78,7 +78,7 @@ public struct Path {
 
      - Returns: `true` if the path references an existing directory, otherwise `false`.
      */
-    static func doesPathReferenceDirectory(_ absolutePath: String) -> Bool {
+    public static func doesPathReferenceDirectory(_ absolutePath: String) -> Bool {
 
         let fileURL = URL(fileURLWithPath: absolutePath)
         guard let value = try? fileURL.resourceValues(forKeys: [.isDirectoryKey]) else { return false }
@@ -94,7 +94,7 @@ public struct Path {
 
      - Returns: The file data, or an empty array on error.
      */
-    static func getFileContents(_ filepath: String) -> ArraySlice<UInt8> {
+    public static func getFileContents(_ filepath: String) -> ArraySlice<UInt8> {
 
         let fileURL: URL = URL(fileURLWithPath: filepath)
         guard let data = try? Data(contentsOf: fileURL) else { return [] }

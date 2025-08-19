@@ -225,7 +225,7 @@ public struct Stdio {
     /**
      Trap Ctrl-C to display a friendly messgage.
      */
-    static func enableCtrlHandler(_ handlerWarning: String?) {
+    public static func enableCtrlHandler(_ handlerWarning: String?) {
 
         // Make sure the signal does not terminate the application
         signal(SIGINT, SIG_IGN)
@@ -250,7 +250,7 @@ public struct Stdio {
     }
 
 
-    static func disableCtrlHandler() {
+    public static func disableCtrlHandler() {
 
         if let ds = dispatchSource {
             ds.cancel()
@@ -263,7 +263,7 @@ public struct Stdio {
     /**
      Generic message display routine.
      */
-    static func report(_ message: String) {
+    public static func report(_ message: String) {
 
         writeToStderr(message)
     }
@@ -272,7 +272,7 @@ public struct Stdio {
     /**
      Generic warning display routine.
      */
-    static func reportWarning(_ message: String) {
+    public static func reportWarning(_ message: String) {
 
         writeToStderr(String(.yellow) + String(.bold) + "WARNING " + String(.normal) + message)
     }
@@ -281,7 +281,7 @@ public struct Stdio {
     /**
      Generic error display routine, but do not exit.
      */
-    static func reportError(_ message: String) {
+    public static func reportError(_ message: String) {
 
         writeToStderr(String(.red) + String(.bold) + "ERROR " + String(.normal) + message)
     }
@@ -290,7 +290,7 @@ public struct Stdio {
     /**
      Generic error display routine, exiting the app after displaying the message.
      */
-    static func reportErrorAndExit(_ message: String, _ code: Int32 = EXIT_FAILURE) {
+    public static func reportErrorAndExit(_ message: String, _ code: Int32 = EXIT_FAILURE) {
 
         writeToStderr(String(.red) + String(.bold) + "ERROR " + String(.normal) + message + " -- exiting")
         disableCtrlHandler()
@@ -301,7 +301,7 @@ public struct Stdio {
     /**
      Generic data output routine.
      */
-    static func output(_ data: String) {
+    public static func output(_ data: String) {
 
         writeToStdout(data)
     }
@@ -310,7 +310,7 @@ public struct Stdio {
     /**
      Write a message to a standard file handle with a line break.
      */
-    static func writeln(message text: String, to fileHandle: FileHandle) {
+    public static func writeln(message text: String, to fileHandle: FileHandle) {
 
 #if os(macOS)
         let EOL = "\n"
@@ -326,7 +326,7 @@ public struct Stdio {
     /**
      Write a message to a standard file handle with no line break.
      */
-    static func write(message text: String, to fileHandle: FileHandle) {
+    public static func write(message text: String, to fileHandle: FileHandle) {
 
         if let textAsData: Data = (text).data(using: .utf8) {
             fileHandle.write(textAsData)
