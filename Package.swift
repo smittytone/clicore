@@ -13,7 +13,7 @@ let package = Package(
     targets: [
         .target(
             name: "Clicore",
-            //path: ".",
+            path: "Sources",
             //exclude: [
             //    "LICENCE.md",
             //    "README.md",
