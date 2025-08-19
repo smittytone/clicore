@@ -34,7 +34,7 @@ import Foundation
 
  Functions are static and so are likewise accessed via the `Stdio` namespace.
  */
-struct Stdio {
+public struct Stdio {
 
     /*
      The customary 8-bit shell colours.

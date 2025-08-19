@@ -42,7 +42,7 @@ import Foundation
  - Returns: A tuple containing an error code (or zero for no error) and either
             the STD OUT output on success, or STD ERR output on error.
  */
-func runProcess(app path: String, with args: [String]) -> (Int32, String) {
+public func runProcess(app path: String, with args: [String]) -> (Int32, String) {
 
     let task: Process = Process()
     task.qualityOfService = .userInitiated

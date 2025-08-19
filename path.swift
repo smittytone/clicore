@@ -29,7 +29,7 @@ import Foundation
 
 // MARK: - Path Processing Functions
 
-struct Path {
+public struct Path {
 
     /**
      Convert a partial path to an absolute path.
