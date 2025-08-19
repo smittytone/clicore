@@ -39,7 +39,7 @@ public struct Stdio {
     /*
      The customary 8-bit shell colours.
      */
-    enum ShellColour: Int {
+    public enum ShellColour: Int {
 
         case black              // 0
         case red                // 1
@@ -56,7 +56,7 @@ public struct Stdio {
         /**
          Get the value as a foreground colour string.
          */
-        func foreground() -> String {
+        public func foreground() -> String {
 
             return tostring(baseValue: 30)
         }
@@ -65,7 +65,7 @@ public struct Stdio {
         /**
          Get the value as a background colour string.
          */
-        func background() -> String {
+        public func background() -> String {
 
             return tostring(baseValue: 40)
 
@@ -86,7 +86,7 @@ public struct Stdio {
     /*
      The customary shell display styles.
      */
-    enum ShellStyle: Int {
+    public enum ShellStyle: Int {
 
         case normal             // 0
         case bold               // 1
@@ -103,7 +103,7 @@ public struct Stdio {
         /**
          Get the value of the style's enable action as a string.
          */
-        func on() -> String {
+        public func on() -> String {
 
             return tostring(baseValue: 0)
         }
@@ -112,7 +112,7 @@ public struct Stdio {
         /**
          Get the value of the style's disable action as a string.
          */
-        func off() -> String {
+        public func off() -> String {
 
             return tostring(baseValue: 20)
 
@@ -130,14 +130,14 @@ public struct Stdio {
     }
 
 
-    struct ShellRoutes {
+    public  struct ShellRoutes {
 
-        static let Error: FileHandle    = FileHandle.standardError
-        static let Output: FileHandle   = FileHandle.standardOutput
+        public static let Error: FileHandle    = FileHandle.standardError
+        public static let Output: FileHandle   = FileHandle.standardOutput
     }
 
 
-    struct ShellCursor {
+    public struct ShellCursor {
 
         private enum Direction: String {
             case up         = "A"
@@ -150,38 +150,38 @@ public struct Stdio {
         }
 
 
-        static let Backspace: String    = String(UnicodeScalar(8))
-        static let Newline: String      = String(UnicodeScalar(10))
-        static let Return: String       = String(UnicodeScalar(13))
-        static let Clearline: String    = "\u{001B}[2K"
-        static let Home: String         = "\u{001B}[H"
+        public static let Backspace: String    = String(UnicodeScalar(8))
+        public static let Newline: String      = String(UnicodeScalar(10))
+        public static let Return: String       = String(UnicodeScalar(13))
+        public static let Clearline: String    = "\u{001B}[2K"
+        public static let Home: String         = "\u{001B}[H"
 
 
-        func up(lines: Int) -> String {
+        public func up(lines: Int) -> String {
 
             return moveCursor(lines, .up)
         }
 
 
-        func down(lines: Int) -> String {
+        public func down(lines: Int) -> String {
 
             return moveCursor(lines, .down)
         }
 
 
-        func left(columns: Int) -> String {
+        public func left(columns: Int) -> String {
 
             return moveCursor(columns, .left)
         }
 
 
-        func right(columns: Int) -> String {
+        public func right(columns: Int) -> String {
 
             return moveCursor(columns, .right)
         }
 
 
-        func toColumn(_ column: Int) -> String {
+        public func toColumn(_ column: Int) -> String {
 
             var amount = column
             if amount < 0 {
@@ -192,13 +192,13 @@ public struct Stdio {
         }
 
 
-        func back(lines: Int) -> String {
+        public func back(lines: Int) -> String {
 
             return moveCursor(lines, .previous)
         }
 
 
-        func forward(lines: Int) -> String {
+        public func forward(lines: Int) -> String {
 
             return moveCursor(lines, .next)
         }
@@ -217,7 +217,7 @@ public struct Stdio {
 
     // MARK: Public Properties
 
-    static var dispatchSource: DispatchSourceSignal? = nil
+    public static var dispatchSource: DispatchSourceSignal? = nil
 
 
     // MARK: Public Functions for Ctrl-C Support

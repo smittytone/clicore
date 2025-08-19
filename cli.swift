@@ -29,8 +29,8 @@ import Foundation
 
 public struct Cli {
 
-    static let CtrlCExitCode: Int32 = 130
-    static let CtrlCMessage: String = "\(Stdio.ShellCursor.Return)\(Stdio.ShellCursor.Clearline)"
+    public static let CtrlCExitCode: Int32 = 130
+    public static let CtrlCMessage: String = "\(Stdio.ShellCursor.Return)\(Stdio.ShellCursor.Clearline)"
 
 
     /**
