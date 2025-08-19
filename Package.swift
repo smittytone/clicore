@@ -4,9 +4,11 @@ import PackageDescription
 
 let package = Package(
     name: "Clicore",
+    products: [
+        .library(name: "Clicore", targets: ["caper"]),
     targets: [
         .target(
-            name: "Clicore",
+            name: "clicore",
             path: ".",
         )
     ]
