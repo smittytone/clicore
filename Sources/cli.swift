@@ -47,6 +47,22 @@ public struct Cli {
         var newArgs: [String] = []
 
         for arg in args {
+            // FROM 0.2.0
+            // Handle combined args with assignments
+            if arg.contains("=") {
+                // Argument contains an assignment
+                let parts = arg.components(separatedBy: "=")
+                if arg.count > 2 {
+                    // arg is of form '-m=something'
+                    for subArg in parts {
+                        // Add the elements of the combined arg as separate args
+                        newArgs.append(subArg)
+                    }
+
+                    continue
+                }
+            }
+
             // Look for compound flags, ie. a single dash followed by
             // more than one flag identifier
             if arg.prefix(1) == "-" && arg.prefix(2) != "--" {
@@ -61,22 +77,6 @@ public struct Cli {
 
                         // Retain the flag as a standard arg for subsequent processing
                         newArgs.append("-\(subArg)")
-                    }
-
-                    continue
-                }
-            }
-
-            // FROM 0.2.0
-            // Handle combined args with assignments
-            if arg.contains("=") {
-                // Argument contains an assignment
-                let parts = arg.components(separatedBy: "=")
-                if arg.count > 2 {
-                    // arg is of form '-m=something'
-                    for subArg in parts {
-                        // Add the elements of the combined arg as separate args
-                        newArgs.append(subArg)
                     }
 
                     continue
