@@ -360,13 +360,13 @@ public struct Stdio {
  */
 public extension String {
 
-    public init(_ colour: Stdio.ShellColour, _ background: Bool = false) {
+    init(_ colour: Stdio.ShellColour, _ background: Bool = false) {
 
         self = background ? colour.background() : colour.foreground()
     }
 
 
-    public init(_ style: Stdio.ShellStyle, _ on: Bool = true) {
+    init(_ style: Stdio.ShellStyle, _ on: Bool = true) {
 
         self = on ? style.on() : style.off()
     }

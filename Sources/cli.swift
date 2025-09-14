@@ -67,6 +67,22 @@ public struct Cli {
                 }
             }
 
+            // FROM 0.2.0
+            // Handle combined args with assignments
+            if arg.contains("=") {
+                // Argument contains an assignment
+                let parts = arg.components(separatedBy: "=")
+                if arg.count > 2 {
+                    // arg is of form '-m=something'
+                    for subArg in parts {
+                        // Add the elements of the combined arg as separate args
+                        newArgs.append(subArg)
+                    }
+
+                    continue
+                }
+            }
+
             // It's an ordinary arg, so retain it
             newArgs.append(arg)
         }
