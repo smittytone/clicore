@@ -312,11 +312,11 @@ public struct Stdio {
      */
     public static func writeln(message text: String, to fileHandle: FileHandle) {
 
-#if os(macOS)
+//#if os(macOS)
         let EOL = "\n"
-#else
-        let EOL = "\r\n"
-#endif
+//#else
+//        let EOL = "\r\n"
+//#endif
         if let textAsData: Data = (text + EOL).data(using: .utf8) {
             fileHandle.write(textAsData)
         }
