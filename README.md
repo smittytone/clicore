@@ -1,4 +1,4 @@
-# clicore 0.2.0
+# clicore 0.2.1
 
 This repo contains core CLI functionality used by my Swift CLI apps and utilities.
 
