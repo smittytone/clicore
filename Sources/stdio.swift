@@ -155,6 +155,8 @@ public struct Stdio {
         public static let Return: String       = String(UnicodeScalar(13))
         public static let Clearline: String    = "\u{001B}[2K"
         public static let Home: String         = "\u{001B}[H"
+        // FROM 0.2.2
+        public static let clearscreen: String  = "\u{0033}[2J"
 
 
         public func up(lines: Int) -> String {
@@ -259,6 +261,12 @@ public struct Stdio {
 
 
     // MARK: Public Functions for Reporting and Data Output
+
+    public static func cls() -> String {
+
+        return ShellCursor.clearscreen
+    }
+
 
     /**
      Generic message display routine.
