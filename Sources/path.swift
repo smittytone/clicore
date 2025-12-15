@@ -109,7 +109,7 @@ public struct Path {
 public extension Data {
 
     // Return data as an array of bytes
-    public var bytes: [UInt8] {
+    var bytes: [UInt8] {
         return [UInt8](self)
     }
 }
