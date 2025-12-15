@@ -206,6 +206,12 @@ public struct Stdio {
         }
 
 
+        static public func cls() -> String {
+
+            return ShellCursor.Clearscreen + ShellCursor.Home
+        }
+
+
         private func moveCursor(_ steps: Int, _ direction: Direction) -> String {
 
             if steps < 1 {
@@ -213,11 +219,6 @@ public struct Stdio {
             }
 
             return "\u{001B}[\(steps)\(direction.rawValue)"
-        }
-
-        public static func cls() -> String {
-
-            return ShellCursor.Clearscreen + ShellCursor.Home
         }
     }
 
@@ -334,6 +335,15 @@ public struct Stdio {
         if let textAsData: Data = (text).data(using: .utf8) {
             fileHandle.write(textAsData)
         }
+    }
+
+
+    /**
+     Clear screen.
+     */
+    public static func cls() {
+
+        writeToStderr(ShellCursor.cls())
     }
 
 
