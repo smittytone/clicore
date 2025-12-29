@@ -1,5 +1,8 @@
 ## Release Notes
 
+- 0.4.0 *Unreleased*
+    - Make `Stdio.ShellCursor` functions Struct functions.
+    - Add initial tests.
 - 0.3.0 *15 December 2025*
     - Add new `cls()` function to `Stdio` via `Stdio.ShellCursor`.
 - 0.2.1 *31 October 2025*
