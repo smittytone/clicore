@@ -15,5 +15,9 @@ let package = Package(
             name: "Clicore",
             path: "Sources",
         ),
+        .testTarget(
+            name: "ClicoreTests",
+            dependencies: ["Clicore"]
+        ),
     ]
 )
