@@ -39,7 +39,7 @@ public struct Stdio {
     /*
      The customary 8-bit shell colours.
      */
-    public enum ShellColour: Int {
+    public enum ShellColour: Int, CaseIterable {
 
         case black              // 0
         case red                // 1
@@ -58,7 +58,7 @@ public struct Stdio {
          */
         public func foreground() -> String {
 
-            return tostring(baseValue: 30)
+            return string(baseValue: 30)
         }
 
 
@@ -67,7 +67,7 @@ public struct Stdio {
          */
         public func background() -> String {
 
-            return tostring(baseValue: 40)
+            return string(baseValue: 40)
 
         }
 
@@ -75,7 +75,7 @@ public struct Stdio {
         /**
          Convert the enum to a suitable string for issuing via STDIO.
          */
-        private func tostring(baseValue: Int) -> String {
+        private func string(baseValue: Int) -> String {
 
             let value = self.rawValue + baseValue
             return "\u{001B}[\(value)m"
@@ -86,7 +86,7 @@ public struct Stdio {
     /*
      The customary shell display styles.
      */
-    public enum ShellStyle: Int {
+    public enum ShellStyle: Int, CaseIterable {
 
         case normal             // 0
         case bold               // 1
@@ -105,7 +105,7 @@ public struct Stdio {
          */
         public func on() -> String {
 
-            return tostring(baseValue: 0)
+            return string(baseValue: 0)
         }
 
 
@@ -114,7 +114,7 @@ public struct Stdio {
          */
         public func off() -> String {
 
-            return tostring(baseValue: 20)
+            return string(baseValue: 20)
 
         }
 
@@ -122,7 +122,7 @@ public struct Stdio {
         /**
          Convert the enum to a suitable string for issuing via STDIO.
          */
-        private func tostring(baseValue: Int) -> String {
+        private func string(baseValue: Int) -> String {
 
             let value = self.rawValue + baseValue
             return "\u{001B}[\(value)m"
@@ -130,7 +130,7 @@ public struct Stdio {
     }
 
 
-    public  struct ShellRoutes {
+    public struct ShellRoutes {
 
         public static let Error: FileHandle    = FileHandle.standardError
         public static let Output: FileHandle   = FileHandle.standardOutput
@@ -159,31 +159,32 @@ public struct Stdio {
         public static let Clearscreen: String  = "\u{001B}[2J"
 
 
-        public func up(lines: Int) -> String {
+        static public func up(lines: Int) -> String {
 
             return moveCursor(lines, .up)
         }
 
 
-        public func down(lines: Int) -> String {
+        static public func down(lines: Int) -> String {
 
             return moveCursor(lines, .down)
         }
 
 
-        public func left(columns: Int) -> String {
+        static public func left(columns: Int) -> String {
 
             return moveCursor(columns, .left)
         }
 
 
-        public func right(columns: Int) -> String {
+        static public func right(columns: Int) -> String {
 
             return moveCursor(columns, .right)
         }
 
 
-        public func toColumn(_ column: Int) -> String {
+        // FROM 0.4.0
+        static public func to(column: Int) -> String {
 
             var amount = column
             if amount < 0 {
@@ -193,14 +194,19 @@ public struct Stdio {
             return "\u{001B}[\(amount)\(Direction.column.rawValue)"
         }
 
+        // FOR BACKWARDS COMPATIBILITY
+        static public func toColumn(_ column: Int) -> String {
+            return to(column: column)
+        }
 
-        public func back(lines: Int) -> String {
+
+        static public func back(lines: Int) -> String {
 
             return moveCursor(lines, .previous)
         }
 
 
-        public func forward(lines: Int) -> String {
+        static public func forward(lines: Int) -> String {
 
             return moveCursor(lines, .next)
         }
@@ -212,7 +218,7 @@ public struct Stdio {
         }
 
 
-        private func moveCursor(_ steps: Int, _ direction: Direction) -> String {
+        static private func moveCursor(_ steps: Int, _ direction: Direction) -> String {
 
             if steps < 1 {
                 return ""
