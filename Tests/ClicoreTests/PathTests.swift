@@ -7,6 +7,7 @@
 
 import Testing
 import Clicore
+import Foundation
 
 
 struct PathTest {
@@ -35,7 +36,13 @@ struct PathTest {
 
         let path = "/example/test/folder/../../../"
         let aPath = Path.processRelativePath(path)
-        #expect(aPath == "/tmp")
+        if ProcessInfo.processInfo.processName == "xctest" {
+            // Xcode CMD-U path
+            #expect(aPath == "/tmp")
+        } else {
+            // CLI `swift test` path -- update for YOUR environment
+            #expect(aPath == "/Users/smitty/GitHub/clicore")
+        }
     }
 
 
