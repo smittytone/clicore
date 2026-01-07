@@ -98,7 +98,7 @@ public struct Path {
 
         let fileURL: URL = URL(fileURLWithPath: filepath)
         guard let data = try? Data(contentsOf: fileURL) else { return [] }
-        return data.bytes[...]
+        return data.byteSlice
     }
 }
 
@@ -111,5 +111,11 @@ public extension Data {
     // Return data as an array of bytes
     var bytes: [UInt8] {
         return [UInt8](self)
+    }
+
+
+    // Return data as a slice of array of bytes
+    var byteSlice: ArraySlice<UInt8> {
+        return self.bytes[...]
     }
 }
