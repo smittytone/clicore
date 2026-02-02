@@ -1,6 +1,6 @@
 ## Release Notes
 
-- 0.4.0 *Unreleased*
+- 0.4.0 *2 February 2026*
     - Make `Stdio.ShellCursor` functions Struct functions (ie. static).
     - Rename `Stdio.ShellStyle` and `Stdio.ShellColour` private `tostring()` functions `string()` (non-breaking).
     - Rename `Stdio.ShellCursor.toColumn(column)` function `Stdio.ShellCursor.to(column)` (non-breaking as old form is preserved, but deprecated).
