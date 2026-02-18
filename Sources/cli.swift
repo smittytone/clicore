@@ -33,6 +33,63 @@ public struct Cli {
     public static let CtrlCMessage: String = "\(Stdio.ShellCursor.Return)\(Stdio.ShellCursor.Clearline)"
 
 
+    public struct Command {
+
+        var short: String = ""
+        var long: String = ""
+        var help: String = ""
+        var required: Bool = false
+        var value: String = ""
+        var subcommands: [Command] = []
+        var run: (<T> -> <S>)? = nil
+        let id = UUID()
+    }
+
+    // {tool} {command} {sub-command} {options}
+
+    private var commands: [Command] = []
+
+    public static addRoot(_ command: Command) -> Result<String, Error> {
+
+        for added in commands {
+            if added.short == command.short || added.long == command.long {
+                // Already added
+                return .failure(Error())
+            }
+        }
+
+        commands.append(command)
+        return .success(command)
+    }
+
+    public static addSub(_root: Command, _ command: Command) -> Result<String, Error> {
+
+        var got = false
+        for added in commands {
+            if added.id == root.id {
+                got = true
+                break
+            }
+        }
+
+        if !got {
+            return .failure(Error())
+        }
+
+        // NOTE Same as addRoot essentially
+        for added in root.subcommands {
+            if added.short == command.short || added.long == command.long {
+                // Already added
+                return .failure(Error())
+            }
+        }
+
+        root.subcommands.append(command)
+        return .success(command)
+    }
+
+    
+    
     /**
      Locate combined args (eg. -lj) and convert into separate args
      for later processing by the host app.
