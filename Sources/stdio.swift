@@ -37,6 +37,17 @@ import Foundation
 public struct Stdio {
 
     /*
+     Home for Stdio-level settings.
+
+     FROM 0.5.0
+     */
+    public struct Settings {
+
+        public var emoji: Bool = false
+    }
+
+
+    /*
      The customary 8-bit shell colours.
      */
     public enum ShellColour: Int, CaseIterable {
@@ -232,6 +243,8 @@ public struct Stdio {
     // MARK: Public Properties
 
     public static var dispatchSource: DispatchSourceSignal? = nil
+    // FROM 0.5.0
+    public static var settings: Settings = Settings()
 
 
     // MARK: Public Functions for Ctrl-C Support
@@ -284,11 +297,29 @@ public struct Stdio {
 
 
     /**
+     Enhanced message display routine.
+
+     FROM 0.5.0
+     */
+    public static func reportNote(_ message: String) {
+
+        if settings.emoji {
+            writeToStderr("❕ " + String(.normal) + message)
+        } else {
+            writeToStderr(String(.white) + String(.bold) + "NOTE " + String(.normal) + message)
+        }
+    }
+
+    /**
      Generic warning display routine.
      */
     public static func reportWarning(_ message: String) {
 
-        writeToStderr(String(.yellow) + String(.bold) + "WARNING " + String(.normal) + message)
+        if settings.emoji {
+            writeToStderr("⚠️ \(message)")
+        } else {
+            writeToStderr(String(.yellow) + String(.bold) + "WARNING " + String(.normal) + message)
+        }
     }
 
 
@@ -297,7 +328,11 @@ public struct Stdio {
      */
     public static func reportError(_ message: String) {
 
-        writeToStderr(String(.red) + String(.bold) + "ERROR " + String(.normal) + message)
+        if settings.emoji {
+            writeToStderr("🛑 \(message)")
+        } else {
+            writeToStderr(String(.red) + String(.bold) + "ERROR " + String(.normal) + message)
+        }
     }
 
 
@@ -306,7 +341,12 @@ public struct Stdio {
      */
     public static func reportErrorAndExit(_ message: String, _ code: Int32 = EXIT_FAILURE) {
 
-        writeToStderr(String(.red) + String(.bold) + "ERROR " + String(.normal) + message + " -- exiting")
+        if settings.emoji {
+            writeToStderr("🛑 \(message) -- exiting")
+        } else {
+            writeToStderr(String(.red) + String(.bold) + "ERROR " + String(.normal) + message + " -- exiting")
+        }
+
         disableCtrlHandler()
         exit(code)
     }
