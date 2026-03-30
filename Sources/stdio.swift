@@ -297,6 +297,17 @@ public struct Stdio {
 
 
     /**
+     Emoji-centric message display routine.
+
+     FROM 0.5.0
+     */
+    public static func report(withEmoji emoji: String, _ message: String) {
+
+        writeToStderr("\(emoji) \(message)")
+    }
+
+
+    /**
      Enhanced message display routine.
 
      FROM 0.5.0
@@ -304,7 +315,7 @@ public struct Stdio {
     public static func reportNote(_ message: String) {
 
         if settings.emoji {
-            writeToStderr("❕ " + String(.normal) + message)
+            writeToStderr("❕ \(message)")
         } else {
             writeToStderr(String(.white) + String(.bold) + "NOTE " + String(.normal) + message)
         }
