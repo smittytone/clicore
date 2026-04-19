@@ -1,7 +1,7 @@
 ## Release Notes
 
 - 0.5.0 *Unreleased*
-    - Add `Stdio.settings` struct for passing rendering settins.
+    - Add `Stdio.settings` struct for passing rendering settings.
     - Add emoji support to output as alternative to text.
 - 0.4.0 *2 February 2026*
     - Make `Stdio.ShellCursor` functions Struct functions (ie. static).
