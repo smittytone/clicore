@@ -36,6 +36,20 @@ import Foundation
  */
 public struct Stdio {
 
+
+    /*
+     Store for emoji message prefixes.
+
+     FROM 0.5.0
+     */
+    public struct Prefixes {
+
+        var info: String        = "❕"
+        var warning: String     = "⚠️"
+        var error: String       = "🛑"
+    }
+
+
     /*
      Home for Stdio-level settings.
 
@@ -43,7 +57,8 @@ public struct Stdio {
      */
     public struct Settings {
 
-        public var emoji: Bool = false
+        public var useEmoji: Bool = false
+        public var prefixes = Prefixes()
     }
 
 
@@ -314,8 +329,8 @@ public struct Stdio {
      */
     public static func reportNote(_ message: String) {
 
-        if settings.emoji {
-            writeToStderr("❕ \(message)")
+        if settings.useEmoji {
+            writeToStderr("\(self.settings.prefixes.info) \(message)")
         } else {
             writeToStderr(String(.white) + String(.bold) + "NOTE " + String(.normal) + message)
         }
@@ -326,8 +341,8 @@ public struct Stdio {
      */
     public static func reportWarning(_ message: String) {
 
-        if settings.emoji {
-            writeToStderr("⚠️ \(message)")
+        if settings.useEmoji {
+            writeToStderr("\(self.settings.prefixes.warning) \(message)")
         } else {
             writeToStderr(String(.yellow) + String(.bold) + "WARNING " + String(.normal) + message)
         }
@@ -339,8 +354,8 @@ public struct Stdio {
      */
     public static func reportError(_ message: String) {
 
-        if settings.emoji {
-            writeToStderr("🛑 \(message)")
+        if settings.useEmoji {
+            writeToStderr("\(self.settings.prefixes.error) \(message)")
         } else {
             writeToStderr(String(.red) + String(.bold) + "ERROR " + String(.normal) + message)
         }
@@ -352,8 +367,8 @@ public struct Stdio {
      */
     public static func reportErrorAndExit(_ message: String, _ code: Int32 = EXIT_FAILURE) {
 
-        if settings.emoji {
-            writeToStderr("🛑 \(message) -- exiting")
+        if settings.useEmoji {
+            writeToStderr("\(self.settings.prefixes.error) \(message) -- exiting")
         } else {
             writeToStderr(String(.red) + String(.bold) + "ERROR " + String(.normal) + message + " -- exiting")
         }
