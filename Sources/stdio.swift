@@ -45,7 +45,7 @@ public struct Stdio {
     public struct Prefixes {
 
         var info: String        = "❕"
-        var warning: String     = "⚠️"
+        var warning: String     = "⚠️ "
         var error: String       = "🛑"
     }
 
