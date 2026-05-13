@@ -28,3 +28,9 @@ Stdio.enableCtrlHandler("utitool interrupted -- halting")
 // Move up five lines
 Stdio.report(Stdio.ShellCursor.up(lines: 5))
 ```
+
+```swift
+// Head output with emoji
+Stdio.settings.useEmoji = true
+```
+

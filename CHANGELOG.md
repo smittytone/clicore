@@ -1,6 +1,6 @@
 ## Release Notes
 
-- 0.5.0 *Unreleased*
+- 0.5.0 *13 May 2026*
     - Add `Stdio.settings` struct for passing rendering settings.
     - Add emoji support to output as alternative to text.
 - 0.4.0 *2 February 2026*
