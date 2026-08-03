@@ -61,7 +61,10 @@ public func runProcess(app path: String, with args: [String]) -> (Int32, String)
         // get it and store it for processing later
         let data = fileHandle.availableData
         if let output = String(data: data, encoding: .utf8) {
-            DispatchQueue.main.async {
+            //DispatchQueue.main.async {
+            //    outputText += output
+            //}
+            Task {
                 outputText += output
             }
         }
@@ -73,7 +76,10 @@ public func runProcess(app path: String, with args: [String]) -> (Int32, String)
         // get it and store it for processing later
         let data = fileHandle.availableData
         if let output = String(data: data, encoding: .utf8) {
-            DispatchQueue.main.async {
+            //DispatchQueue.main.async {
+            //    errorText += output
+            //}
+            Task {
                 errorText += output
             }
         }
