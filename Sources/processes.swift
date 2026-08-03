@@ -64,9 +64,8 @@ public func runProcess(app path: String, with args: [String]) -> (Int32, String)
             //DispatchQueue.main.async {
             //    outputText += output
             //}
-            let t = Task { @MainActor in
-                outputText += output
-            }
+            outputText += output
+
         }
     }
 
@@ -79,9 +78,8 @@ public func runProcess(app path: String, with args: [String]) -> (Int32, String)
             //DispatchQueue.main.async {
             //    errorText += output
             //}
-            Task { @MainActor in
-                errorText += output
-            }
+            errorText += output
+            
         }
     }
 
