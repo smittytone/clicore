@@ -1,5 +1,10 @@
 ## Release Notes
 
+- 0.5.1 *Unreleased*
+    - Fix issue with command line args separated by `=` not being parsed correctly.
+    - Prevent a potential crash if a `nil` `isDirectory` value is force-unwrapped.
+    - Correctly `nil` references to `DispatchSourceSignal` instances after cancellation.
+    - Add a default error message on `Process.run()` immediate fails.
 - 0.5.0 *13 May 2026*
     - Add `Stdio.settings` struct for passing rendering settings.
     - Add emoji support to output as alternative to text.

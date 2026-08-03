@@ -1,9 +1,11 @@
-// swift-tools-version: 5.4
-
+// swift-tools-version: 5.10
 import PackageDescription
 
 let package = Package(
     name: "Clicore",
+    platforms: [
+        .macOS(.v10_15)
+    ],
     products: [
         .library(
             name: "Clicore",

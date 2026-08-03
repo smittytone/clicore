@@ -1,4 +1,4 @@
-# clicore 0.5.0
+# clicore 0.5.1
 
 This repo contains core CLI functionality used by my Swift CLI apps and utilities.
 
@@ -33,4 +33,3 @@ Stdio.report(Stdio.ShellCursor.up(lines: 5))
 // Head output with emoji
 Stdio.settings.useEmoji = true
 ```
-
