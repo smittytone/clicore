@@ -27,6 +27,7 @@
 import Foundation
 
 
+
 // MARK: - Process Handling Functions
 
 /**
@@ -64,8 +65,6 @@ public func runProcess(app path: String, with args: [String]) -> (Int32, String)
             DispatchQueue.main.async {
                 outputText += output
             }
-            //outputText += output
-
         }
     }
 
@@ -76,10 +75,8 @@ public func runProcess(app path: String, with args: [String]) -> (Int32, String)
         let data = fileHandle.availableData
         if let output = String(data: data, encoding: .utf8) {
             DispatchQueue.main.async {
-                errorText += output + "~"
+                errorText += output
             }
-            //errorText += output
-
         }
     }
 
@@ -90,7 +87,7 @@ public func runProcess(app path: String, with args: [String]) -> (Int32, String)
     do {
         try task.run()
     } catch {
-        return (1, errorText != "" ? errorText : "unknown")
+        return (1, error.localizedDescription)
     }
 
     // Block until the task has completed (short tasks ONLY)
