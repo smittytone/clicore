@@ -34,6 +34,7 @@ import Foundation
 
  Functions are static and so are likewise accessed via the `Stdio` namespace.
  */
+@MainActor
 public struct Stdio {
 
 
@@ -42,6 +43,7 @@ public struct Stdio {
 
      FROM 0.5.0
      */
+    
     public struct Prefixes {
 
         var info: String        = "❕"
@@ -257,9 +259,9 @@ public struct Stdio {
 
     // MARK: Public Properties
 
-    public static var dispatchSource: DispatchSourceSignal? = nil
+    @MainActor public static var dispatchSource: DispatchSourceSignal? = nil
     // FROM 0.5.0
-    public static var settings: Settings = Settings()
+    @MainActor public static var settings: Settings = Settings()
 
 
     // MARK: Public Functions for Ctrl-C Support
