@@ -45,16 +45,18 @@ import Foundation
  */
 public func runProcess(app path: String, with args: [String]) -> (Int32, String) {
 
-    let task: Process = Process()
+    let task = Process()
     task.qualityOfService = .userInitiated
     task.executableURL = URL(fileURLWithPath: path)
     if args.count > 0 { task.arguments = args }
+    // FROM 0.5.1 -- use an app-specific queue rather than main
+    let stdioQueue = DispatchQueue(label: "com.clicore.queue")
 
     // Pipe out the output to avoid putting it in the log
     let stdOutPipe = Pipe()
     let stdErrPipe = Pipe()
-    var outputText: String = ""
-    var errorText: String = ""
+    var outputText = ""
+    var errorText = ""
 
     let stdOutHandle = stdOutPipe.fileHandleForReading
     stdOutHandle.readabilityHandler = { fileHandle in
@@ -62,7 +64,7 @@ public func runProcess(app path: String, with args: [String]) -> (Int32, String)
         // get it and store it for processing later
         let data = fileHandle.availableData
         if let output = String(data: data, encoding: .utf8) {
-            DispatchQueue.main.async {
+            stdioQueue.async {
                 outputText += output
             }
         }
@@ -74,7 +76,7 @@ public func runProcess(app path: String, with args: [String]) -> (Int32, String)
         // get it and store it for processing later
         let data = fileHandle.availableData
         if let output = String(data: data, encoding: .utf8) {
-            DispatchQueue.main.async {
+            stdioQueue.async {
                 errorText += output
             }
         }
@@ -99,10 +101,94 @@ public func runProcess(app path: String, with args: [String]) -> (Int32, String)
     stdErrHandle.readabilityHandler = nil
 
     // Task completed successfully so return the standard output
+    // TODO `outputText` will be empty if the called tool doesn't issue
+    //      to `stdout` but only to `stderr`, so we will need to allow
+    //      for this in future.
     if task.terminationStatus == 0 {
         return (0, outputText)
     }
 
     // Task reported an error, so pass it back with any error message
     return (task.terminationStatus, errorText)
+}
+
+
+@available(macOS 12.0, *)
+actor ChunkOutputCollector {
+    
+    private(set) var text = ""
+
+    func appendOutput(_ chunk: String) {
+        text += chunk
+    }
+}
+
+
+@available(macOS 12.0, *)
+public func runProcessAsync(app path: String, with args: [String]) async -> (Int32, String, String) {
+
+    let task = Process()
+    task.qualityOfService = .userInitiated
+    task.executableURL = URL(fileURLWithPath: path)
+    if args.count > 0 { task.arguments = args }
+
+    let stdOutCollector = ChunkOutputCollector()
+    let stdErrCollector = ChunkOutputCollector()
+    let stdOutPipe = Pipe()
+    let stdErrPipe = Pipe()
+    let stdOutHandle = stdOutPipe.fileHandleForReading
+    let stdErrHandle = stdErrPipe.fileHandleForReading
+    task.standardOutput = stdOutPipe
+    task.standardError = stdErrPipe
+
+    // Kick off chunk-based readers as concurrent tasks
+    let stdOutTask = Task {
+        try await readAllChunks(from: stdOutHandle) {
+            await stdOutCollector.appendOutput($0)
+        }
+    }
+
+    let stdErrTask = Task {
+        try await readAllChunks(from: stdErrHandle) {
+            await stdErrCollector.appendOutput($0)
+        }
+    }
+
+    do {
+        try task.run()
+    } catch {
+        stdOutTask.cancel()
+        stdErrTask.cancel()
+        return (1, "", error.localizedDescription)
+    }
+
+    // Wait for the process to exit off the main actor
+    await withCheckedContinuation { continuation in
+        task.terminationHandler = { _ in
+            continuation.resume()
+        }
+    }
+
+    // Let the readers drain any remaining buffered data, then stop them
+    _ = try? await stdOutTask.value
+    _ = try? await stdErrTask.value
+
+    return (task.terminationStatus, await stdOutCollector.text, await stdErrCollector.text)
+}
+
+
+@available(macOS 12.0, *)
+private func readAllChunks(from handle: FileHandle, into append: @escaping (String) async -> Void) async throws {
+    var buffer = [UInt8]()
+    for try await byte in handle.bytes {
+        buffer.append(byte)
+        if let str = String(bytes: buffer, encoding: .utf8) {
+            await append(str)
+            buffer.removeAll(keepingCapacity: true)
+        }
+    }
+    // Flush any trailing bytes that never formed a complete String
+    if !buffer.isEmpty, let str = String(bytes: buffer, encoding: .utf8) {
+        await append(str)
+    }
 }
