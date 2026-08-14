@@ -35,7 +35,8 @@ public struct Cli {
 
     /**
      Locate combined args (eg. -lj) and convert into separate args
-     for later processing by the host app.
+     for later processing by the host app. Also handle -m=something
+     type arguments.
 
      - Parameters:
         - args The arguments from the command line.
@@ -52,13 +53,21 @@ public struct Cli {
             if arg.contains("=") {
                 // Argument contains an assignment
                 let parts = arg.components(separatedBy: "=")
-                if parts.count > 2 {
+                if parts.count == 2 {
                     // arg is of form '-m=something'
                     for subArg in parts {
                         // Add the elements of the combined arg as separate args
                         newArgs.append(subArg)
                     }
 
+                    continue
+                } else if parts.count > 2 {
+                    // arg is of form '-m=something=something_else'
+                    // Assume only the first = is relevant and allow the equals-containg value
+                    // to be decoded by the host app
+                    let value = arg.components(separatedBy: parts[0] + "=")[1]
+                    newArgs.append(parts[0])
+                    newArgs.append(value)
                     continue
                 }
             }
