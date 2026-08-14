@@ -45,9 +45,11 @@ public struct Stdio {
     
     public struct Prefixes {
 
-        var info: String        = "❕"
-        var warning: String     = "⚠️ "
-        var error: String       = "🛑"
+        public var info: String     = "❕"
+        public var warning: String  = "⚠️ "
+        public var error: String    = "🛑"
+
+        public init() {}
     }
 
 
@@ -60,6 +62,8 @@ public struct Stdio {
 
         public var useEmoji: Bool = false
         public var prefixes = Prefixes()
+
+        public init() {}
     }
 
 
