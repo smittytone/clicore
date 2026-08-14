@@ -5,6 +5,7 @@
     - Prevent a potential crash if a `nil` `isDirectory` value is force-unwrapped.
     - Correctly `nil` references to `DispatchSourceSignal` instances after cancellation.
     - Add a default error message on `runProcess(()` internal `Process.run()` immediate fails.
+    - Abstract away `NSString` functions in `Path.swift` with a `String` extension.
 - 0.5.0 *13 May 2026*
     - Add `Stdio.settings` struct for passing rendering settings.
     - Add emoji support to output as alternative to text.

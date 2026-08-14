@@ -42,11 +42,11 @@ public struct Path {
     public static func getFullPath(_ relativePath: String) -> String {
 
         // Standardise the path as best as we can (this covers most cases)
-        var absolutePath: String = (relativePath as NSString).standardizingPath
+        var absolutePath = relativePath.standardizedPath
 
         // Check for a unresolved relative path -- and if it is one, resolve it
         // NOTE This includes raw filenames
-        if (absolutePath as NSString).contains("..") || !(absolutePath as NSString).hasPrefix("/") {
+        if absolutePath.contains("..") || !absolutePath.hasPrefix("/") {
             absolutePath = processRelativePath(absolutePath)
         }
 
@@ -66,7 +66,7 @@ public struct Path {
     public static func processRelativePath(_ relativePath: String) -> String {
 
         let absolutePath = FileManager.default.currentDirectoryPath + "/" + relativePath
-        return (absolutePath as NSString).standardizingPath
+        return absolutePath.standardizedPath
     }
 
 
@@ -96,7 +96,7 @@ public struct Path {
      */
     public static func getFileContents(_ filepath: String) -> ArraySlice<UInt8> {
 
-        let fileURL: URL = URL(fileURLWithPath: filepath)
+        let fileURL = URL(fileURLWithPath: filepath)
         guard let data = try? Data(contentsOf: fileURL) else { return [] }
         return data.byteSlice
     }
@@ -117,5 +117,17 @@ public extension Data {
     // Return data as a slice of array of bytes
     var byteSlice: ArraySlice<UInt8> {
         return self.bytes[...]
+    }
+}
+
+
+/*
+ This extension property is required by the path functions.
+ */
+public extension String {
+
+    // Return string after path standardisation to expand `~`
+    var standardizedPath: String {
+        return (self as NSString).standardizingPath
     }
 }
