@@ -114,4 +114,165 @@ struct StdioTest {
         #expect(col == "\u{001B}[0G")
     }
 
+
+    @Test func testShellCursorLeftGood() {
+
+        let left = Stdio.ShellCursor.left(columns: 5)
+        #expect(left == "\u{001B}[5C")
+    }
+
+
+    @Test func testShellCursorLeftBad() {
+
+        let left = Stdio.ShellCursor.left(columns: -2)
+        #expect(left == "")
+    }
+
+
+    @Test func testShellCursorRightGood() {
+
+        let right = Stdio.ShellCursor.right(columns: 3)
+        #expect(right == "\u{001B}[3D")
+    }
+
+
+    @Test func testShellCursorUpBad() {
+
+        let up = Stdio.ShellCursor.up(lines: 0)
+        #expect(up == "")
+    }
+
+
+    @Test func testShellCursorDownBad() {
+
+        let down = Stdio.ShellCursor.down(lines: -1)
+        #expect(down == "")
+    }
+
+
+    @Test func testShellCursorBackGood() {
+
+        let back = Stdio.ShellCursor.back(lines: 2)
+        #expect(back == "\u{001B}[2F")
+    }
+
+
+    @Test func testShellCursorBackBad() {
+
+        let back = Stdio.ShellCursor.back(lines: -1)
+        #expect(back == "")
+    }
+
+
+    @Test func testShellCursorForwardGood() {
+
+        let forward = Stdio.ShellCursor.forward(lines: 3)
+        #expect(forward == "\u{001B}[3E")
+    }
+
+
+    @Test func testShellCursorForwardBad() {
+
+        let forward = Stdio.ShellCursor.forward(lines: 0)
+        #expect(forward == "")
+    }
+
+
+    @Test func testShellCursorConstants() {
+
+        #expect(Stdio.ShellCursor.Backspace == "\u{0008}")
+        #expect(Stdio.ShellCursor.Newline == "\u{000A}")
+        #expect(Stdio.ShellCursor.Return == "\u{000D}")
+        #expect(Stdio.ShellCursor.Clearline == "\u{001B}[2K")
+        #expect(Stdio.ShellCursor.Home == "\u{001B}[H")
+        #expect(Stdio.ShellCursor.Clearscreen == "\u{001B}[2J")
+    }
+
+
+    // MARK: Settings
+
+    @Test func testSettingsDefaultUseEmoji() {
+
+        let settings = Stdio.Settings()
+        #expect(settings.useEmoji == false)
+    }
+
+
+    @Test func testSettingsToggleUseEmoji() {
+
+        var settings = Stdio.Settings()
+        settings.useEmoji = true
+        #expect(settings.useEmoji == true)
+    }
+
+
+    @Test func testSettingsDefaultPrefixInfo() {
+
+        let settings = Stdio.Settings()
+        #expect(settings.prefixes.info == "❕")
+    }
+
+
+    @Test func testSettingsDefaultPrefixWarning() {
+
+        let settings = Stdio.Settings()
+        #expect(settings.prefixes.warning == "⚠️ ")
+    }
+
+
+    @Test func testSettingsDefaultPrefixError() {
+
+        let settings = Stdio.Settings()
+        #expect(settings.prefixes.error == "🛑")
+    }
+
+
+    @Test func testSettingsCustomPrefixes() {
+
+        var settings = Stdio.Settings()
+        settings.prefixes.info = "ℹ️"
+        settings.prefixes.warning = "⚡️"
+        settings.prefixes.error = "💥"
+        #expect(settings.prefixes.info == "ℹ️")
+        #expect(settings.prefixes.warning == "⚡️")
+        #expect(settings.prefixes.error == "💥")
+    }
+
+
+    @Test func testGlobalSettingsAreIndependent() {
+
+        // Modifying a local Settings instance must not affect the global
+        var local = Stdio.Settings()
+        local.useEmoji = true
+        local.prefixes.info = "ℹ️"
+        #expect(Stdio.settings.useEmoji == false)
+        #expect(Stdio.settings.prefixes.info == "❕")
+    }
+
+
+    // MARK: String Extensions
+
+    @Test func testStringColourForeground() {
+
+        #expect(String(.red) == "\u{001B}[31m")
+    }
+
+
+    @Test func testStringColourBackground() {
+
+        #expect(String(.red, true) == "\u{001B}[41m")
+    }
+
+
+    @Test func testStringStyleOn() {
+
+        #expect(String(.bold) == "\u{001B}[1m")
+    }
+
+
+    @Test func testStringStyleOff() {
+
+        #expect(String(.bold, false) == "\u{001B}[21m")
+    }
+
 }
