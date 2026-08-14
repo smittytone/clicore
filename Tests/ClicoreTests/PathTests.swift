@@ -58,6 +58,7 @@ struct PathTest {
     @Test func testDoesPathReferenceDirectoryWithFile() async throws {
 
         let path = "/tmp/test"
+        defer { try? FileManager.default.removeItem(atPath: path) }
         do {
             try "test".write(toFile: path, atomically: true, encoding: .utf8)
             #expect(!Path.doesPathReferenceDirectory(path))
@@ -72,6 +73,7 @@ struct PathTest {
     @Test func testDoesGetFileContentsValidFile() async throws {
 
         let path = "/tmp/test"
+        defer { try? FileManager.default.removeItem(atPath: path) }
         do {
             try "test".write(toFile: path, atomically: true, encoding: .utf8)
             let readback = Path.getFileContents(path)
@@ -95,6 +97,48 @@ struct PathTest {
         let path = "/tmp"
         let readback = Path.getFileContents(path)
         #expect(readback.isEmpty)
+    }
+
+
+    @Test func testDoesGetFileContentsEmptyFile() async throws {
+
+        let path = "/tmp/clicore_empty_test"
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        try "".write(toFile: path, atomically: true, encoding: .utf8)
+        let readback = Path.getFileContents(path)
+        #expect(readback.isEmpty)
+    }
+
+
+    // MARK: - GetFullPath() additional
+
+    @Test func testGetFullPathAbsolute() {
+
+        let aPath = Path.getFullPath("/usr/bin")
+        #expect(aPath == "/usr/bin")
+    }
+
+
+    @Test func testGetFullPathTilde() {
+
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let aPath = Path.getFullPath("~")
+        #expect(aPath == home)
+    }
+
+
+    @Test func testGetFullPathBareFilename() {
+
+        let aPath = Path.getFullPath("example.txt")
+        #expect(aPath.hasPrefix("/") && aPath.hasSuffix("/example.txt"))
+    }
+
+
+    // MARK: - DoesPathReferenceDirectory() additional
+
+    @Test func testDoesPathReferenceDirectoryNonexistent() {
+
+        #expect(!Path.doesPathReferenceDirectory("/tmp/nonexistent_clicore_xyz"))
     }
 
 }
