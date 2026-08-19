@@ -1,6 +1,6 @@
 ## Release Notes
 
-- 0.5.1 *Unreleased*
+- 0.5.1 *19 August 2026*
     - Fix issue with command line args separated by `=` not being parsed correctly, and improve handling of `-m=a=b` args.
     - Prevent a potential crash if a `nil` `isDirectory` value is force-unwrapped.
     - Correctly `nil` references to `DispatchSourceSignal` instances after cancellation.
