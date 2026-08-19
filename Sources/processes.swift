@@ -31,10 +31,7 @@ import Foundation
 // MARK: - Process Handling Functions
 
 /**
- Generic macOS process creation and run function.
-
- Make sure we clear the preference flag for this minor version, so that
- the sheet is not displayed next time the app is run (unless the version changes)
+ Generic pre-Swift Concurrency macOS process creation and run function.
 
  - Parameters:
     - app:  The location of the app.
@@ -113,16 +110,18 @@ public func runProcess(app path: String, with args: [String]) -> (Int32, String)
 }
 
 
-@available(macOS 12.0, *)
-actor ChunkOutputCollector {
-    
-    private(set) var text = ""
+/**
+ Swift Concurrency version of `runProcess()` to be used in async-await contexts.
 
-    func appendOutput(_ chunk: String) {
-        text += chunk
-    }
-}
+ - Requires: macOS 12+
 
+ - Parameters:
+    - app:  The location of the app.
+    - with: Array of arguments to pass to the app.
+
+ - Returns: A tuple containing an error code (or zero for no error) and either
+            the STD OUT output on success, or STD ERR output on error.
+ */
 
 @available(macOS 12.0, *)
 public func runProcessAsync(app path: String, with args: [String]) async -> (Int32, String, String) {
@@ -177,6 +176,40 @@ public func runProcessAsync(app path: String, with args: [String]) async -> (Int
 }
 
 
+/**
+ Swift Concurrency-oriented actor structure that asynchronously collates substrings
+ (chunks) into a final string.
+
+ It is expected that `ChunkOutputCollector` is instanced within `runProcessAsync()` and
+ its `appendOutput()` called from within an async-await closure.
+
+ - Requires: macOS 12+
+
+ */
+@available(macOS 12.0, *)
+actor ChunkOutputCollector {
+
+    private(set) var text = ""
+
+    func appendOutput(_ chunk: String) {
+        text += chunk
+    }
+}
+
+
+/**
+ Swift Concurrency-oriented function to extract asynchronously collated substrings from STDIO
+ filehandles and collate them into a single string for subsequent processing.
+
+ It is expected that `readAllChunks()` is called from within `runProcessAsync()`.
+
+ - Requires: macOS 12+
+
+ - Parameters:
+    - from: The source file handle.
+    - into: An await-async closure that asynchronously collates a received byte-sequence as
+            a string into a larger string. See `ChunkOutputCollector` and `runProcessAsync()`.
+ */
 @available(macOS 12.0, *)
 private func readAllChunks(from handle: FileHandle, into append: @escaping (String) async -> Void) async throws {
     var buffer = [UInt8]()
@@ -187,6 +220,7 @@ private func readAllChunks(from handle: FileHandle, into append: @escaping (Stri
             buffer.removeAll(keepingCapacity: true)
         }
     }
+
     // Flush any trailing bytes that never formed a complete String
     if !buffer.isEmpty, let str = String(bytes: buffer, encoding: .utf8) {
         await append(str)
