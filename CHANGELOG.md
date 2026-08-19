@@ -9,6 +9,7 @@
     - Make `Stdio.Settings` and `Stdio.Prefixes` initialisera public.
     - Add `Cli` module tests.
     - Extend `Stdio` and `Path` test suites.
+    - Add experimental `runProcessAsync()` for apps using Swift Concurrency.
 - 0.5.0 *13 May 2026*
     - Add `Stdio.settings` struct for passing rendering settings.
     - Add emoji support to output as alternative to text.
