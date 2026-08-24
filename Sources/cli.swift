@@ -43,11 +43,11 @@ public struct Cli {
 
      - Returns: Regular args plus converted ones.
      */
-    public static func unify(args: [String]) -> [String] {
+    public static func unify(args: [String], _ dropFirst: Bool = true) -> [String] {
 
         var newArgs: [String] = []
-
-        for arg in args {
+        let baseArgs = dropFirst ? args.dropFirst() : args[...]
+        for arg in baseArgs {
             // FROM 0.2.0
             // Handle combined args with assignments
             if arg.contains("=") {
