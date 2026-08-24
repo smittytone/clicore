@@ -110,6 +110,7 @@ public func runProcess(app path: String, with args: [String]) -> (Int32, String)
 }
 
 
+#if os(macOS)
 /**
  Swift Concurrency version of `runProcess()` to be used in async-await contexts.
 
@@ -226,3 +227,4 @@ private func readAllChunks(from handle: FileHandle, into append: @escaping (Stri
         await append(str)
     }
 }
+#endif
