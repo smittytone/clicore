@@ -1,7 +1,9 @@
 ## Release Notes
 
 - 0.6.0 *Unreleased*
-    - `unifyArgs()` now optionally drops the first pased argument. This occurs by default.
+    - `unifyArgs()` now optionally drops the first pased argument. This occurs by default, but can be disabled.
+    - Move process-related functions to a struct, `Processes`.
+    - Add initial `Processes` tests.
 - 0.5.1 *19 August 2026*
     - Fix issue with command line args separated by `=` not being parsed correctly, and improve handling of `-m=a=b` args.
     - Prevent a potential crash if a `nil` `isDirectory` value is force-unwrapped.
