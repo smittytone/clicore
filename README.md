@@ -2,16 +2,16 @@
 
 This repo contains core CLI functionality used by my Swift CLI apps and utilities.
 
+## Installation (Swift PM)
+
+* Add the package as a dependency in Xcode or your project’s own `Package.swift` file.
+
 ## Installation (git)
 
 * `cd /path/to/project`
 * `git submodule add https://github.com/smittytone/clicore`
 * Add the files you require to your project, eg. in Xcode.
     * Make sure you select **Reference files in place**.
-
-## Installation (Swift PM)
-
-* Add the package as a dependency in Xcode or your project’s own `Package.swift` file.
 
 ## Usage
 
