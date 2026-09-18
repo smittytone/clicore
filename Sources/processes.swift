@@ -38,11 +38,12 @@ public struct Processes {
      - Parameters:
         - app:  The location of the app.
         - with: Array of arguments to pass to the app.
+        - in:   Directory in which to run the app.
 
      - Returns: A tuple containing an error code (or zero for no error) and either
      the STD OUT output on success, or STD ERR output on error.
      */
-    public static func runProcess(app path: String, with args: [String]) -> (Int32, String) {
+    public static func runProcess(app path: String, with args: [String], in directory: URL? = nil) -> (Int32, String) {
 
         let task = Process()
         task.qualityOfService = .userInitiated
@@ -50,6 +51,10 @@ public struct Processes {
         if args.count > 0 { task.arguments = args }
         // FROM 0.5.1 -- use an app-specific queue rather than main
         let stdioQueue = DispatchQueue(label: "com.clicore.queue")
+        // FROM 0.6.1 -- support the addition of a target directory
+        if let dir = directory {
+            task.currentDirectoryURL = dir
+        }
 
         // Pipe out the output to avoid putting it in the log
         let stdOutPipe = Pipe()
@@ -127,13 +132,18 @@ public struct Processes {
      */
 
     @available(macOS 12.0, *)
-    public static func runProcessAsync(app path: String, with args: [String]) async -> (Int32, String, String) {
+    public static func runProcessAsync(app path: String, with args: [String], in directory: URL? = nil) async -> (Int32, String, String) {
 
         let task = Process()
         task.qualityOfService = .userInitiated
         task.executableURL = URL(fileURLWithPath: path)
         if args.count > 0 { task.arguments = args }
 
+        // FROM 0.6.1 -- support the addition of a target directory
+        if let dir = directory {
+            task.currentDirectoryURL = dir
+        }
+        
         let stdOutCollector = ChunkOutputCollector()
         let stdErrCollector = ChunkOutputCollector()
         let stdOutPipe = Pipe()

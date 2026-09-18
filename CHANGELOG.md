@@ -1,7 +1,7 @@
 ## Release Notes
 
 - 0.6.1 *Unreleased*
-    - ???
+    - Allow a target directory file URL to be passed to `runProcess()`.
 - 0.6.0 *26 August 2026*
     - `unifyArgs()` now optionally drops the first pased argument. This occurs by default, but can be disabled.
     - Move process-related functions to a struct, `Processes`.
