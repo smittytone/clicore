@@ -36,7 +36,7 @@ import Foundation
  */
 public struct Stdin {
 
-    public static func getCharacter(_ prompt: String, _ choices: String = "YN") -> String? {
+    public static func getCharacter(_ prompt: String, _ choices: String = "YN", _ caseSensitive: Bool = false) -> String? {
 
         guard !prompt.isEmpty else { return nil }
         guard !choices.isEmpty else { return nil }
@@ -58,9 +58,11 @@ public struct Stdin {
         // Get the input
         let inputValue = UInt32(getchar())
         if let inputThing = UnicodeScalar(inputValue) {
-            let inputCharacter = Character(inputThing)
+            var inputCharacter = Character(inputThing)
             for choice in choices {
-                if inputCharacter == choice {
+                if caseSensitive && inputCharacter == choice {
+                    return String(choice)
+                } else if !caseSensitive && inputCharacter.lowercased() == choice.lowercased() {
                     return String(choice)
                 }
             }
