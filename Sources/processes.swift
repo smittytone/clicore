@@ -117,6 +117,7 @@ public struct Processes {
     }
 
 
+#if os(macOS)
     /**
      Swift Concurrency version of `runProcess()` to be used in async-await contexts.
 
@@ -238,4 +239,5 @@ public struct Processes {
             await append(str)
         }
     }
+#endif
 }
