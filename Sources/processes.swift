@@ -51,7 +51,7 @@ public struct Processes {
         if args.count > 0 { task.arguments = args }
         // FROM 0.5.1 -- use an app-specific queue rather than main
         let stdioQueue = DispatchQueue(label: "com.clicore.queue")
-        // FROM 0.6.1 -- support the addition of a target directory
+        // FROM 0.7.0 -- support the addition of a target directory
         if let dir = directory {
             task.currentDirectoryURL = dir
         }
@@ -118,6 +118,10 @@ public struct Processes {
 
 
 #if os(macOS)
+    // NOTE This section is macOS only because it currently depends upon `FileHandle.bytes` which
+    //      is not yet available from the version of Foundation shipping with Swift on Linux.
+
+
     /**
      Swift Concurrency version of `runProcess()` to be used in async-await contexts.
 
@@ -139,7 +143,8 @@ public struct Processes {
         task.executableURL = URL(fileURLWithPath: path)
         if args.count > 0 { task.arguments = args }
 
-        // FROM 0.6.1 -- support the addition of a target directory
+        // FROM 0.7.0
+        // Support the addition of a target directory
         if let dir = directory {
             task.currentDirectoryURL = dir
         }

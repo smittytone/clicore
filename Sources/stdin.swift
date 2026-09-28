@@ -70,4 +70,47 @@ public struct Stdin {
 
         return  nil
     }
+
+
+    public static func getKey(_ prompt: String, _ choices: String = "YN", _ caseSensitive: Bool = false) -> String? {
+
+        var originalTermios = termios()
+        let fileHandle = Stdio.ShellRoutes.Input.fileDescriptor
+
+        defer {
+            // Reset to disable raw mode on exit
+            _ = tcsetattr(fileHandle, TCSAFLUSH, &originalTermios)
+        }
+
+        guard tcgetattr(fileHandle, &originalTermios) != -1 else { return nil }
+        var raw = originalTermios
+
+#if os(Linux) || os(FreeBSD)
+        raw.c_iflag &= ~UInt32(BRKINT | ICRNL | INPCK | ISTRIP | IXON)
+        raw.c_oflag &= ~UInt32(OPOST)
+        raw.c_cflag |= UInt32(CS8)
+        raw.c_lflag &= ~UInt32(ECHO | ICANON | IEXTEN | ISIG)
+#else
+        raw.c_iflag &= ~UInt(BRKINT | ICRNL | INPCK | ISTRIP | IXON)
+        raw.c_oflag &= ~UInt(OPOST)
+        raw.c_cflag |= UInt(CS8)
+        raw.c_lflag &= ~UInt(ECHO | ICANON | IEXTEN | ISIG)
+#endif
+        // VMIN = 16
+        raw.c_cc.16 = 1
+
+        guard tcsetattr(fileHandle, Int32(TCSAFLUSH), &raw) >= 0 else { return nil }
+
+        var byte: UInt8 = 0
+        read(fileHandle, &byte, 1)
+        let entry = Character(UnicodeScalar(byte))
+        for choice in choices {
+            if entry.lowercased() == choice.lowercased() {
+                return String(choice)
+            }
+        }
+
+        return nil
+    }
+    
 }

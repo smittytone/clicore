@@ -165,6 +165,8 @@ public struct Stdio {
 
         public static let Error: FileHandle    = FileHandle.standardError
         public static let Output: FileHandle   = FileHandle.standardOutput
+        // FROM 0.7.0
+        public static let Input: FileHandle     = FileHandle.standardInput
     }
 
 
