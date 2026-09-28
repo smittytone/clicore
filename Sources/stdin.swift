@@ -36,6 +36,17 @@ import Foundation
  */
 public struct Stdin {
 
+    /**
+     Gets a character from `STDIN` after the `ENTER` key has been pressed.
+
+     - Parameters:
+        - prompt:        Text to present to the user.
+        - choices:       String containing all the valid keypresses. Used to display a list of
+                         options immediately after the prompt. Default: "YN".
+        - caseSensitive: Should the case of the entered character be checked? Default: `false`.
+
+     - Returns: The entered key as a string, or `nil` on error (from the tty or a mis-key).
+     */
     public static func getCharacter(_ prompt: String, _ choices: String = "YN", _ caseSensitive: Bool = false) -> String? {
 
         guard !prompt.isEmpty else { return nil }
@@ -50,11 +61,11 @@ public struct Stdin {
         // Get the input
         let inputValue = UInt32(getchar())
         if let inputThing = UnicodeScalar(inputValue) {
-            var inputCharacter = Character(inputThing)
+            let entry = Character(inputThing)
             for choice in choices {
-                if caseSensitive && inputCharacter == choice {
+                if caseSensitive && entry == choice {
                     return String(choice)
-                } else if !caseSensitive && inputCharacter.lowercased() == choice.lowercased() {
+                } else if !caseSensitive && entry.lowercased() == choice.lowercased() {
                     return String(choice)
                 }
             }
@@ -64,16 +75,24 @@ public struct Stdin {
     }
 
 
-    public static func getKey(_ prompt: String, _ choices: String = "YN", _ caseSensitive: Bool = false) -> String? {
+    /**
+     Gets a key press from `STDIN` by first putting it it into raw mode (restores on exit).
+
+     - Examples"
+        - `getKey("Enter your choice", "AB")` will present to the useer:
+           Enter your choice [A/B]
+
+     - Parameters:
+        - prompt:  Text to present to the user.
+        - choices: String containing all the valid keypresses. Used to display a list of
+                   options immediately after the prompt. Default: "YN".
+
+     - Returns: The entered key as a string, or `nil` on error (from the tty or a mis-key).
+     */
+    public static func getKey(_ prompt: String, _ choices: String = "YN") -> String? {
 
         guard !prompt.isEmpty else { return nil }
         guard !choices.isEmpty else { return nil }
-
-        // Assemble the choice display
-        let choiceText = assembleChoices(choices, false)
-
-        // Display the prompt plus options
-        Stdio.write(message: "\(prompt) \(choiceText) ", to: Stdio.ShellRoutes.Output)
 
         var originalTermios = termios()
         let fileHandle = Stdio.ShellRoutes.Input.fileDescriptor
@@ -102,8 +121,17 @@ public struct Stdin {
 
         guard tcsetattr(fileHandle, Int32(TCSAFLUSH), &raw) >= 0 else { return nil }
 
+        // Assemble the choice display
+        let choiceText = assembleChoices(choices, false)
+
+        // Display the prompt plus options
+        Stdio.write(message: "\(prompt) \(choiceText) ", to: Stdio.ShellRoutes.Output)  // Should be err???
+
+        // Get the input -- this waits for a keypress
         var byte: UInt8 = 0
         read(fileHandle, &byte, 1)
+
+        // Process the input
         let entry = Character(UnicodeScalar(byte))
         for choice in choices {
             if entry.lowercased() == choice.lowercased() {
