@@ -124,7 +124,7 @@ public struct Stdin {
             if choice != choices.last {
                 choiceText += "/"
             } else {
-                choiceText += "]+\(addEnter ? "ENTER" : "")"
+                choiceText += "]\(addEnter ? "+ENTER" : "")"
             }
         }
 
