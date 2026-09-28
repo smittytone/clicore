@@ -42,18 +42,10 @@ public struct Stdin {
         guard !choices.isEmpty else { return nil }
 
         // Assemble the choice display
-        var choiceText = "["
-        for choice in choices {
-            choiceText += String(choice)
-            if choice != choices.last {
-                choiceText += "/"
-            } else {
-                choiceText += "]+ENTER "
-            }
-        }
+        let choiceText = assembleChoices(choices)
 
         // Display the prompt plus options
-        Stdio.write(message: "\(prompt) \(choiceText)", to: Stdio.ShellRoutes.Output)
+        Stdio.write(message: "\(prompt) \(choiceText) ", to: Stdio.ShellRoutes.Output)
 
         // Get the input
         let inputValue = UInt32(getchar())
@@ -73,6 +65,15 @@ public struct Stdin {
 
 
     public static func getKey(_ prompt: String, _ choices: String = "YN", _ caseSensitive: Bool = false) -> String? {
+
+        guard !prompt.isEmpty else { return nil }
+        guard !choices.isEmpty else { return nil }
+
+        // Assemble the choice display
+        let choiceText = assembleChoices(choices, false)
+
+        // Display the prompt plus options
+        Stdio.write(message: "\(prompt) \(choiceText) ", to: Stdio.ShellRoutes.Output)
 
         var originalTermios = termios()
         let fileHandle = Stdio.ShellRoutes.Input.fileDescriptor
@@ -112,5 +113,21 @@ public struct Stdin {
 
         return nil
     }
-    
+
+
+    private static func assembleChoices(_ choices: String, _ addEnter: Bool = true) -> String {
+
+        // Assemble the choice display
+        var choiceText = "["
+        for choice in choices {
+            choiceText += String(choice)
+            if choice != choices.last {
+                choiceText += "/"
+            } else {
+                choiceText += "]+\(addEnter ? "ENTER" : "")"
+            }
+        }
+
+        return choiceText
+    }
 }
