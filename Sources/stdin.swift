@@ -128,6 +128,7 @@ public struct Stdin {
         Stdio.write(message: "\(prompt) \(choiceText) ", to: Stdio.ShellRoutes.Output)  // Should be err???
 
         // Get the input -- this waits for a keypress
+        // NOTE Does not accept complex characters like emoji
         var byte: UInt8 = 0
         read(fileHandle, &byte, 1)
 
@@ -135,10 +136,12 @@ public struct Stdin {
         let entry = Character(UnicodeScalar(byte))
         for choice in choices {
             if entry.lowercased() == choice.lowercased() {
+                Stdio.write(message: "\n", to: Stdio.ShellRoutes.Output)
                 return String(choice)
             }
         }
 
+        Stdio.write(message: "\n", to: Stdio.ShellRoutes.Output)
         return nil
     }
 
