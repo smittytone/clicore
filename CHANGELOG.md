@@ -1,8 +1,8 @@
 ## Release Notes
 
-- 0.7.0 *Unreleased*
+- 0.7.0 *6 October 2026*
     - Add first `Stdin` input functions.
-    - Add `exitApp()` function to close cleanly.
+    - Add `exitApp()` function to close apps cleanly.
     - Allow a target directory file URL to be passed to `runProcess()`.
 - 0.6.0 *26 August 2026*
     - `unifyArgs()` now optionally drops the first pased argument. This occurs by default, but can be disabled.
