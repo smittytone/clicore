@@ -165,6 +165,8 @@ public struct Stdio {
 
         public static let Error: FileHandle    = FileHandle.standardError
         public static let Output: FileHandle   = FileHandle.standardOutput
+        // FROM 0.7.0
+        public static let Input: FileHandle     = FileHandle.standardInput
     }
 
 
@@ -287,8 +289,9 @@ public struct Stdio {
                 if let hw = handlerWarning {
                     reportWarning(hw)
                 }
+
                 ds.cancel()
-                exit(Cli.CtrlCExitCode)
+                exitApp(Cli.CtrlCExitCode)
             }
 
             // ...and start the event flow
@@ -379,8 +382,7 @@ public struct Stdio {
             writeToStderr(String(.red) + String(.bold) + "ERROR " + String(.normal) + message + " -- exiting")
         }
 
-        disableCtrlHandler()
-        exit(code)
+        exitApp(code)
     }
 
 
@@ -442,6 +444,18 @@ public struct Stdio {
     private static func writeToStdout(_ message: String) {
 
         writeln(message: message, to: ShellRoutes.Output)
+    }
+
+
+    /**
+     Exit the app cleanly.
+
+     FROM
+     */
+    public static func exitApp(_ exitCode: Int32 = EXIT_SUCCESS) {
+
+        disableCtrlHandler()
+        exit(exitCode)
     }
 }
 
