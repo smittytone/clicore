@@ -50,7 +50,7 @@ public struct Processes {
         task.executableURL = URL(fileURLWithPath: path)
         if args.count > 0 { task.arguments = args }
         // FROM 0.5.1 -- use an app-specific queue rather than main
-        let stdioQueue = DispatchQueue(label: "com.clicore.queue")
+        //let stdioQueue = DispatchQueue(label: "com.clicore.queue")
         // FROM 0.7.0 -- support the addition of a target directory
         if let dir = directory {
             task.currentDirectoryURL = dir
@@ -59,6 +59,7 @@ public struct Processes {
         // Pipe out the output to avoid putting it in the log
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
+        /*
         var outputText = ""
         var errorText = ""
 
@@ -85,7 +86,7 @@ public struct Processes {
                 }
             }
         }
-
+        */
         // Hook up the outputs
         task.standardOutput = stdOutPipe
         task.standardError = stdErrPipe
@@ -97,13 +98,19 @@ public struct Processes {
             return (1, error.localizedDescription)
         }
 
-        // Block until the task has completed (short tasks ONLY)
+        var errorData = Data()
+        let group = DispatchGroup()
+        DispatchQueue.global().async(group: group) {
+            errorData = stdErrPipe.fileHandleForReading.readDataToEndOfFile()
+        }
+
+        let outputData = stdOutPipe.fileHandleForReading.readDataToEndOfFile()
+
+        group.wait()
         task.waitUntilExit()
 
-        // Clear the 'data available' handlers
-        // NOTE This seems to fix garbled data issues
-        stdOutHandle.readabilityHandler = nil
-        stdErrHandle.readabilityHandler = nil
+        let outputText = String(decoding: outputData, as: UTF8.self)
+        let errorText = String(decoding: errorData, as: UTF8.self)
 
         // Task completed successfully so return the standard output
         // TODO `outputText` will be empty if the called tool doesn't issue
