@@ -48,45 +48,22 @@ public struct Processes {
         let task = Process()
         task.qualityOfService = .userInitiated
         task.executableURL = URL(fileURLWithPath: path)
-        if args.count > 0 { task.arguments = args }
-        // FROM 0.5.1 -- use an app-specific queue rather than main
-        //let stdioQueue = DispatchQueue(label: "com.clicore.queue")
+
         // FROM 0.7.0 -- support the addition of a target directory
         if let dir = directory {
-            task.currentDirectoryURL = dir
+            task.arguments = ["-C", dir.path]
+        } else {
+            task.arguments = []
+        }
+
+        if args.count > 0 {
+            task.arguments?.append(contentsOf: args)
         }
 
         // Pipe out the output to avoid putting it in the log
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
-        /*
-        var outputText = ""
-        var errorText = ""
 
-        let stdOutHandle = stdOutPipe.fileHandleForReading
-        stdOutHandle.readabilityHandler = { fileHandle in
-            // If there's available output to the redirected file handle,
-            // get it and store it for processing later
-            let data = fileHandle.availableData
-            if let output = String(data: data, encoding: .utf8) {
-                stdioQueue.async {
-                    outputText += output
-                }
-            }
-        }
-
-        let stdErrHandle = stdErrPipe.fileHandleForReading
-        stdErrHandle.readabilityHandler = { fileHandle in
-            // If there's available output to the redirected file handle,
-            // get it and store it for processing later
-            let data = fileHandle.availableData
-            if let output = String(data: data, encoding: .utf8) {
-                stdioQueue.async {
-                    errorText += output
-                }
-            }
-        }
-        */
         // Hook up the outputs
         task.standardOutput = stdOutPipe
         task.standardError = stdErrPipe
@@ -101,15 +78,16 @@ public struct Processes {
         var errorData = Data()
         let group = DispatchGroup()
         DispatchQueue.global().async(group: group) {
-            errorData = stdErrPipe.fileHandleForReading.readDataToEndOfFile()
+            guard let data = try? stdErrPipe.fileHandleForReading.readToEnd() else { return }
+            errorData = data
         }
 
-        let outputData = stdOutPipe.fileHandleForReading.readDataToEndOfFile()
+        let outputData = try? stdOutPipe.fileHandleForReading.readToEnd()
 
         group.wait()
         task.waitUntilExit()
 
-        let outputText = String(decoding: outputData, as: UTF8.self)
+        let outputText = outputData != nil ? String(decoding: outputData!, as: UTF8.self) : ""
         let errorText = String(decoding: errorData, as: UTF8.self)
 
         // Task completed successfully so return the standard output
