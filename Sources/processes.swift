@@ -171,6 +171,54 @@ public struct Processes {
     }
 
 
+    /**
+     Wrap a file handle's `readabilityHandler` callbacks in an `AsyncStream` that yields
+     each chunk of data and finishes at EOF.
+
+     - Parameters:
+        - from: The source file handle.
+
+     - Returns: A stream of data chunks.
+     */
+    private static func dataStream(from handle: FileHandle) -> AsyncStream<Data> {
+
+        AsyncStream { continuation in
+            handle.readabilityHandler = { handle in
+                let data = handle.availableData
+                if data.isEmpty {
+                    // EOF: the child has closed its end of the pipe
+                    handle.readabilityHandler = nil
+                    continuation.finish()
+                } else {
+                    continuation.yield(data)
+                }
+            }
+        }
+    }
+
+
+    /**
+     Gather a stream of data chunks and decode the result as UTF-8.
+
+     Decoding once at the end, rather than per chunk, means multi-byte characters
+     split across chunks are not lost.
+
+     - Parameters:
+        - from: The source stream.
+
+     - Returns: The decoded text.
+     */
+    private static func collectText(from stream: AsyncStream<Data>) async -> String {
+
+        var data = Data()
+        for await chunk in stream {
+            data.append(chunk)
+        }
+
+        return String(decoding: data, as: UTF8.self)
+    }
+
+
 #if os(macOS)
     // NOTE This section is macOS only because it currently depends upon `FileHandle.bytes` which
     //      is not yet available from the version of Foundation shipping with Swift on Linux.
