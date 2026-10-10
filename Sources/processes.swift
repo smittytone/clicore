@@ -79,20 +79,25 @@ public struct Processes {
         // Switch to using a group to avoid a data race in the generation of output strings
         var errorData = Data()
         var outputData = Data()
+
+        // Gather stderr output on its own thread so neither pipe can full up and stall
         let group = DispatchGroup()
         DispatchQueue.global().async(group: group) {
-            if let data = try? stdErrPipe.fileHandleForReading.readToEnd() { 
-                errorData = data 
+            if let data = try? stdErrPipe.fileHandleForReading.readToEnd() {
+                errorData = data
             }
         }
 
+        // Gather stdout output
         if let data = try? stdOutPipe.fileHandleForReading.readToEnd() {
             outputData = data
         }
 
+        // Wait for threads and tasks to complete
         group.wait()
         task.waitUntilExit()
 
+        // Convert output to text
         let outputText = String(decoding: outputData, as: UTF8.self)
         let errorText = String(decoding: errorData, as: UTF8.self)
 
@@ -146,7 +151,7 @@ public struct Processes {
         }
 
         // The stream buffers the exit status, so it can't be missed if the process exits
-        // before we start waiting. Set the handler before `run()` for the same reason
+        // before we start waiting. We set the handler before `run()` for the same reason
         let (exitStream, exitContinuation) = AsyncStream<Int32>.makeStream()
         task.terminationHandler = { process in
             exitContinuation.yield(process.terminationStatus)
