@@ -35,13 +35,17 @@ public struct Processes {
     /**
      Generic pre-Swift Concurrency macOS process creation and run function.
 
+     Works on macOS and Linux.
+
      - Parameters:
         - app:  The location of the app.
         - with: Array of arguments to pass to the app.
-        - in:   Directory in which to run the app.
+        - in:   Directory in which to run the app. This is not recommended 
+                to be used on Linux builds due to issues with the Linux version 
+                of Swift's Foundation library.
 
      - Returns: A tuple containing an error code (or zero for no error) and either
-     the STD OUT output on success, or STD ERR output on error.
+                the STD OUT output on success, or STD ERR output on error.
      */
     public static func runProcess(app path: String, with args: [String], in directory: URL? = nil) -> (Int32, String) {
 
@@ -51,9 +55,7 @@ public struct Processes {
 
         // FROM 0.7.0 -- support the addition of a target directory
         if let dir = directory {
-            task.arguments = ["-C", dir.path]
-        } else {
-            task.arguments = []
+            task.currentDirectoryURL = dir
         }
 
         if args.count > 0 {
@@ -76,18 +78,22 @@ public struct Processes {
         }
 
         var errorData = Data()
+        var outputData = Data()
         let group = DispatchGroup()
         DispatchQueue.global().async(group: group) {
-            guard let data = try? stdErrPipe.fileHandleForReading.readToEnd() else { return }
-            errorData = data
+            if let data = try? stdErrPipe.fileHandleForReading.readToEnd() { 
+                errorData = data 
+            }
         }
 
-        let outputData = try? stdOutPipe.fileHandleForReading.readToEnd()
+        if let data = try? stdOutPipe.fileHandleForReading.readToEnd() {
+            outputData = data
+        }
 
         group.wait()
         task.waitUntilExit()
 
-        let outputText = outputData != nil ? String(decoding: outputData!, as: UTF8.self) : ""
+        let outputText = String(decoding: outputData, as: UTF8.self)
         let errorText = String(decoding: errorData, as: UTF8.self)
 
         // Task completed successfully so return the standard output
@@ -99,6 +105,69 @@ public struct Processes {
 
         // Task reported an error, so pass it back with any error message
         return (task.terminationStatus, errorText)
+    }
+
+
+    /**
+     Swift Concurrency version of `runProcess()` to be used in async-await contexts.
+
+     Works on macOS and Linux: each pipe's `readabilityHandler` callbacks are bridged 
+     into an `AsyncStream`, so no thread is blocked while the process runs.
+
+     - Parameters:
+        - app:  The location of the app.
+        - with: Array of arguments to pass to the app.
+        - in:   Directory in which to run the app. This is not recommended 
+                to be used on Linux builds due to issues with the Linux version 
+                of Swift's Foundation library.
+
+     - Returns: A tuple containing an error code (or zero for no error), 
+                the STD OUT output and the STD ERR output.
+     */
+    public static func runProcessAsync(app path: String, with args: [String], in directory: URL? = nil) async -> (Int32, String, String) {
+
+        let task = Process()
+        task.qualityOfService = .userInitiated
+        task.executableURL = URL(fileURLWithPath: path)
+        if args.count > 0 { task.arguments = args } 
+        if let dir = directory {
+            task.currentDirectoryURL = dir
+        }
+
+        let stdOutPipe = Pipe()
+        let stdErrPipe = Pipe()
+        task.standardOutput = stdOutPipe
+        task.standardError = stdErrPipe
+
+        // Start draining both pipes before launch, so the child can never block on a full pipe
+        let stdOutStream = dataStream(from: stdOutPipe.fileHandleForReading)
+        let stdErrStream = dataStream(from: stdErrPipe.fileHandleForReading)
+
+        let status: Int32
+        do {
+            status = try await withCheckedThrowingContinuation { continuation in
+                // Set the handler before `run()` so a fast-exiting process can't be missed
+                task.terminationHandler = { process in
+                    continuation.resume(returning: process.terminationStatus)
+                }
+
+                do {
+                    try task.run()
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        } catch {
+            // The pipes' write ends are still open in this process, so EOF will never arrive
+            stdOutPipe.fileHandleForReading.readabilityHandler = nil
+            stdErrPipe.fileHandleForReading.readabilityHandler = nil
+            return (1, "", error.localizedDescription)
+        }
+
+        // The streams are buffered, so any output that arrived before exit is still waiting
+        async let stdOutText = collectText(from: stdOutStream)
+        async let stdErrText = collectText(from: stdErrStream)
+        return (status, await stdOutText, await stdErrText)
     }
 
 
@@ -121,7 +190,7 @@ public struct Processes {
      */
 
     @available(macOS 12.0, *)
-    public static func runProcessAsync(app path: String, with args: [String], in directory: URL? = nil) async -> (Int32, String, String) {
+    public static func runProcessAsyncOLD(app path: String, with args: [String], in directory: URL? = nil) async -> (Int32, String, String) {
 
         let task = Process()
         task.qualityOfService = .userInitiated

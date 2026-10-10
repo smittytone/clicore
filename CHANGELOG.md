@@ -1,5 +1,8 @@
 ## Release Notes
 
+- 0.8.0 *Unreleased*
+    - Improve parallelism on Linux.
+    - Enable `runProcessAsync()` on Linux.
 - 0.7.0 *6 October 2026*
     - Add first `Stdin` input functions.
     - Add `exitApp()` function to close apps cleanly.
