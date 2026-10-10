@@ -59,7 +59,7 @@ public struct Processes {
         }
 
         if args.count > 0 {
-            task.arguments?.append(contentsOf: args)
+            task.arguments = args
         }
 
         // Pipe out the output to avoid putting it in the log
@@ -129,93 +129,63 @@ public struct Processes {
         let task = Process()
         task.qualityOfService = .userInitiated
         task.executableURL = URL(fileURLWithPath: path)
+        task.standardOutput = Pipe()
+        task.standardError = Pipe()
+
         if args.count > 0 { task.arguments = args } 
         if let dir = directory {
             task.currentDirectoryURL = dir
         }
 
-        let stdOutPipe = Pipe()
-        let stdErrPipe = Pipe()
-        task.standardOutput = stdOutPipe
-        task.standardError = stdErrPipe
+        // The stream buffers the exit status, so it can't be missed if the process exits
+        // before we start waiting. Set the handler before `run()` for the same reason
+        let (exitStream, exitContinuation) = AsyncStream<Int32>.makeStream()
+        task.terminationHandler = { process in
+            exitContinuation.yield(process.terminationStatus)
+            exitContinuation.finish()
+        }
 
-        // Start draining both pipes before launch, so the child can never block on a full pipe
-        let stdOutStream = dataStream(from: stdOutPipe.fileHandleForReading)
-        let stdErrStream = dataStream(from: stdErrPipe.fileHandleForReading)
-
-        let status: Int32
         do {
-            status = try await withCheckedThrowingContinuation { continuation in
-                // Set the handler before `run()` so a fast-exiting process can't be missed
-                task.terminationHandler = { process in
-                    continuation.resume(returning: process.terminationStatus)
-                }
-
-                do {
-                    try task.run()
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
+            try task.run()
         } catch {
-            // The pipes' write ends are still open in this process, so EOF will never arrive
-            stdOutPipe.fileHandleForReading.readabilityHandler = nil
-            stdErrPipe.fileHandleForReading.readabilityHandler = nil
+            // Don't start reading: the pipes' write ends are still open in this process,
+            // so EOF would never arrive
             return (1, "", error.localizedDescription)
         }
 
-        // The streams are buffered, so any output that arrived before exit is still waiting
-        async let stdOutText = collectText(from: stdOutStream)
-        async let stdErrText = collectText(from: stdErrStream)
+        // Drain both pipes while waiting for exit, so the child can never block on a full pipe
+        async let stdOutText = readText(from: task.standardOutput.fileHandleForReading)
+        async let stdErrText = readText(from: task.standardError.fileHandleForReading)
+
+        var status: Int32 = 1
+        for await exitStatus in exitStream {
+            status = exitStatus
+        }
+
         return (status, await stdOutText, await stdErrText)
     }
 
 
     /**
-     Wrap a file handle's `readabilityHandler` callbacks in an `AsyncStream` that yields
-     each chunk of data and finishes at EOF.
+     Read a file handle to EOF on a dedicated thread, and decode the result as UTF-8.
+
+     The blocking read runs on its own `Thread`, not on the Swift Concurrency thread pool,
+     so the pool is never starved. Decoding once at the end, rather than per chunk, means
+     multi-byte characters split across reads are not lost.
 
      - Parameters:
         - from: The source file handle.
 
-     - Returns: A stream of data chunks.
-     */
-    private static func dataStream(from handle: FileHandle) -> AsyncStream<Data> {
-
-        AsyncStream { continuation in
-            handle.readabilityHandler = { handle in
-                let data = handle.availableData
-                if data.isEmpty {
-                    // EOF: the child has closed its end of the pipe
-                    handle.readabilityHandler = nil
-                    continuation.finish()
-                } else {
-                    continuation.yield(data)
-                }
-            }
-        }
-    }
-
-
-    /**
-     Gather a stream of data chunks and decode the result as UTF-8.
-
-     Decoding once at the end, rather than per chunk, means multi-byte characters
-     split across chunks are not lost.
-
-     - Parameters:
-        - from: The source stream.
-
      - Returns: The decoded text.
      */
-    private static func collectText(from stream: AsyncStream<Data>) async -> String {
+    private static func readText(from handle: FileHandle) async -> String {
 
-        var data = Data()
-        for await chunk in stream {
-            data.append(chunk)
+        await withCheckedContinuation { continuation in
+            Thread {
+                let data = (try? handle.readToEnd()) ?? Data()
+                continuation.resume(returning: String(decoding: data, as: UTF8.self))
+            }.start()
         }
-
-        return String(decoding: data, as: UTF8.self)
     }
 
 
