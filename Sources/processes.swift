@@ -158,7 +158,7 @@ public struct Processes {
 
         // Drain both pipes while waiting for exit, so the child can never block on a full pipe
         async let stdOutText = readText(from: stdOut.fileHandleForReading)
-        async let stdErrText = readText(from: stdErr.standardError.fileHandleForReading)
+        async let stdErrText = readText(from: stdErr.fileHandleForReading)
 
         var status: Int32 = 1
         for await exitStatus in exitStream {
