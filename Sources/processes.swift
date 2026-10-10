@@ -129,8 +129,11 @@ public struct Processes {
         let task = Process()
         task.qualityOfService = .userInitiated
         task.executableURL = URL(fileURLWithPath: path)
-        task.standardOutput = Pipe()
-        task.standardError = Pipe()
+
+        let stdOut = Pipe()
+        let stdErr = Pipe()
+        task.standardOutput = stdOut
+        task.standardError = stdErr
 
         if args.count > 0 { task.arguments = args } 
         if let dir = directory {
@@ -154,8 +157,8 @@ public struct Processes {
         }
 
         // Drain both pipes while waiting for exit, so the child can never block on a full pipe
-        async let stdOutText = readText(from: task.standardOutput.fileHandleForReading)
-        async let stdErrText = readText(from: task.standardError.fileHandleForReading)
+        async let stdOutText = readText(from: stdOut.fileHandleForReading)
+        async let stdErrText = readText(from: stdErr.standardError.fileHandleForReading)
 
         var status: Int32 = 1
         for await exitStatus in exitStream {
