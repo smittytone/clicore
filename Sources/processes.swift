@@ -53,6 +53,12 @@ public struct Processes {
         task.qualityOfService = .userInitiated
         task.executableURL = URL(fileURLWithPath: path)
 
+        // Pipe out the output to avoid putting it in the log
+        let stdOutPipe = Pipe()
+        let stdErrPipe = Pipe()
+        task.standardOutput = stdOutPipe
+        task.standardError = stdErrPipe
+
         // FROM 0.7.0 -- support the addition of a target directory
         if let dir = directory {
             task.currentDirectoryURL = dir
@@ -62,14 +68,6 @@ public struct Processes {
             task.arguments = args
         }
 
-        // Pipe out the output to avoid putting it in the log
-        let stdOutPipe = Pipe()
-        let stdErrPipe = Pipe()
-
-        // Hook up the outputs
-        task.standardOutput = stdOutPipe
-        task.standardError = stdErrPipe
-
         do {
             try task.run()
         } catch {
@@ -77,6 +75,8 @@ public struct Processes {
             return (1, error.localizedDescription)
         }
 
+        // FROM 0.8.0
+        // Switch to using a group to avoid a data race in the generation of output strings
         var errorData = Data()
         var outputData = Data()
         let group = DispatchGroup()
@@ -130,14 +130,19 @@ public struct Processes {
         task.qualityOfService = .userInitiated
         task.executableURL = URL(fileURLWithPath: path)
 
-        let stdOut = Pipe()
-        let stdErr = Pipe()
-        task.standardOutput = stdOut
-        task.standardError = stdErr
+        // Pipe out the output to avoid putting it in the log
+        let stdOutPipe = Pipe()
+        let stdErrPipe = Pipe()
+        task.standardOutput = stdOutPipe
+        task.standardError = stdErrPipe
 
-        if args.count > 0 { task.arguments = args } 
+        // FROM 0.7.0 -- support the addition of a target directory
         if let dir = directory {
             task.currentDirectoryURL = dir
+        }
+
+        if args.count > 0 {
+            task.arguments = args
         }
 
         // The stream buffers the exit status, so it can't be missed if the process exits
@@ -153,14 +158,14 @@ public struct Processes {
         } catch {
             // Don't start reading: the pipes' write ends are still open in this process,
             // so EOF would never arrive
-            return (1, "", error.localizedDescription)
+            return (EXIT_FAILURE, "", error.localizedDescription)
         }
 
         // Drain both pipes while waiting for exit, so the child can never block on a full pipe
-        async let stdOutText = readText(from: stdOut.fileHandleForReading)
-        async let stdErrText = readText(from: stdErr.fileHandleForReading)
+        async let stdOutText = readText(from: stdOutPipe.fileHandleForReading)
+        async let stdErrText = readText(from: stdErrPipe.fileHandleForReading)
 
-        var status: Int32 = 1
+        var status: Int32 = EXIT_FAILURE
         for await exitStatus in exitStream {
             status = exitStatus
         }
