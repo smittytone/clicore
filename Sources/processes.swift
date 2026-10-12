@@ -150,12 +150,12 @@ public struct Processes {
             task.arguments = args
         }
 
-        // The stream buffers the exit status, so it can't be missed if the process exits
+        // The stream buffers the exit status code, so it can't be missed if the process exits
         // before we start waiting. We set the handler before `run()` for the same reason
-        let (exitStream, exitContinuation) = AsyncStream<Int32>.makeStream()
+        let (exitCodes, exitCodesContinuation) = AsyncStream<Int32>.makeStream()
         task.terminationHandler = { process in
-            exitContinuation.yield(process.terminationStatus)
-            exitContinuation.finish()
+            exitCodesContinuation.yield(process.terminationStatus)
+            exitCodesContinuation.finish()
         }
 
         do {
@@ -171,8 +171,8 @@ public struct Processes {
         async let stdErrText = readText(from: stdErrPipe.fileHandleForReading)
 
         var status: Int32 = EXIT_FAILURE
-        for await exitStatus in exitStream {
-            status = exitStatus
+        for await exitCode in exitCodes {
+            status = exitCode
         }
 
         return (status, await stdOutText, await stdErrText)
