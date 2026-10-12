@@ -52,34 +52,42 @@ public struct Processes {
         let task = Process()
         task.qualityOfService = .userInitiated
         task.executableURL = URL(fileURLWithPath: path)
+        if let dir = directory { task.currentDirectoryURL = dir }
+        if args.count > 0 { task.arguments = args }
 
         // Pipe out the output to avoid putting it in the log
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
+        var errorData = Data()
+        var outputData = Data()
         task.standardOutput = stdOutPipe
         task.standardError = stdErrPipe
 
-        // FROM 0.7.0 -- support the addition of a target directory
-        if let dir = directory {
-            task.currentDirectoryURL = dir
+#if os(macOS)
+        stdOutPipe.fileHandleForReading.readabilityHandler = { fileHandle in
+            outputData.append(fileHandle.availableData)
         }
 
-        if args.count > 0 {
-            task.arguments = args
+        stdErrPipe.fileHandleForReading.readabilityHandler = { fileHandle in
+            errorData.append(fileHandle.availableData)
         }
+#endif
 
         do {
             try task.run()
         } catch {
             // NOTE Have to pass `1` as a literal here
-            return (1, error.localizedDescription)
+            return (EXIT_FAILURE, error.localizedDescription)
         }
 
-        // FROM 0.8.0
-        // Switch to using a group to avoid a data race in the generation of output strings
-        var errorData = Data()
-        var outputData = Data()
+#if os(macOS)
+        task.waitUntilExit()
 
+        // Clear the 'data available' handlers
+        // NOTE This seems to fix garbled data issues
+        stdOutPipe.fileHandleForReading.readabilityHandler = nil
+        stdErrPipe.fileHandleForReading.readabilityHandler = nil
+#else
         // Gather stderr output on its own thread so neither pipe can full up and stall
         let group = DispatchGroup()
         DispatchQueue.global().async(group: group) {
@@ -96,6 +104,7 @@ public struct Processes {
         // Wait for threads and tasks to complete
         group.wait()
         task.waitUntilExit()
+#endif
 
         // Convert output to text
         let outputText = String(decoding: outputData, as: UTF8.self)
@@ -104,7 +113,7 @@ public struct Processes {
         // Task completed successfully so return the standard output
         // TODO `outputText` will be empty if the called tool doesn't issue
         //      to `stdout` but only to `stderr`. `errorText` may be empty too.
-        if task.terminationStatus == 0 {
+        if task.terminationStatus == EXIT_SUCCESS {
             return (task.terminationStatus, !outputText.isEmpty ? outputText : errorText)
         }
 
