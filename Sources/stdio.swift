@@ -163,8 +163,8 @@ public struct Stdio {
 
     public struct ShellRoutes {
 
-        public static let Error: FileHandle    = FileHandle.standardError
-        public static let Output: FileHandle   = FileHandle.standardOutput
+        public static let Error: FileHandle     = FileHandle.standardError
+        public static let Output: FileHandle    = FileHandle.standardOutput
         // FROM 0.7.0
         public static let Input: FileHandle     = FileHandle.standardInput
     }
@@ -183,13 +183,16 @@ public struct Stdio {
         }
 
 
-        public static let Backspace: String    = String(UnicodeScalar(8))
-        public static let Newline: String      = String(UnicodeScalar(10))
-        public static let Return: String       = String(UnicodeScalar(13))
-        public static let Clearline: String    = "\u{001B}[2K"
-        public static let Home: String         = "\u{001B}[H"
+        public static let Backspace: String     = String(UnicodeScalar(8))
+        public static let Newline: String       = String(UnicodeScalar(10))
+        public static let Return: String        = String(UnicodeScalar(13))
+        public static let Clearline: String     = "\u{001B}[2K"
+        public static let Home: String          = "\u{001B}[H"
         // FROM 0.2.2
-        public static let Clearscreen: String  = "\u{001B}[2J"
+        public static let Clearscreen: String   = "\u{001B}[2J"
+        // FROM 0.8.0
+        public static let Hide: String          = "\u{001B}[?25l"
+        public static let Show: String          = "\u{001B}[?25h"
 
 
         static public func up(lines: Int) -> String {
@@ -251,6 +254,18 @@ public struct Stdio {
         }
 
 
+        static public func hide() -> String {
+
+            return ShellCursor.Hide
+        }
+
+
+        static public func show() -> String {
+
+            return ShellCursor.Show
+        }
+
+
         static private func moveCursor(_ steps: Int, _ direction: Direction) -> String {
 
             if steps < 1 {
@@ -259,6 +274,7 @@ public struct Stdio {
 
             return "\u{001B}[\(steps)\(direction.rawValue)"
         }
+
     }
 
 
