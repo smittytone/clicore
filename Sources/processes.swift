@@ -65,10 +65,12 @@ public struct Processes {
 
 #if os(macOS)
         stdOutPipe.fileHandleForReading.readabilityHandler = { fileHandle in
+            // `readabilityHandler` operates in its own DispatchQueue
             outputData.append(fileHandle.availableData)
         }
 
         stdErrPipe.fileHandleForReading.readabilityHandler = { fileHandle in
+            // `readabilityHandler` operates in its own DispatchQueue
             errorData.append(fileHandle.availableData)
         }
 #endif
@@ -76,7 +78,6 @@ public struct Processes {
         do {
             try task.run()
         } catch {
-            // NOTE Have to pass `1` as a literal here
             return (EXIT_FAILURE, error.localizedDescription)
         }
 
