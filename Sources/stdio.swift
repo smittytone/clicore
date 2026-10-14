@@ -471,6 +471,8 @@ public struct Stdio {
     public static func exitApp(_ exitCode: Int32 = EXIT_SUCCESS) {
 
         disableCtrlHandler()
+        // FROM 0.8.0 -- always show cursor
+        write(message: Stdio.ShellCursor.show(), to: Stdio.ShellRoutes.Error)
         exit(exitCode)
     }
 }
