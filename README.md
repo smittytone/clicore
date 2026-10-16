@@ -31,6 +31,6 @@ Stdio.settings.useEmoji = true
 
 `clicore` code is © 2026, Tony Smith (@smittytone). It is licensed under the terms of the [MIT Licence](LICENCE.md).
 
-## AI Usage Policy
+_AI was not used in the development of this software. This is a statement of plain fact, not of policy. AI tools may be used in future._
 
-The code in this repo was not written by AI but by the owner. However, AI has been used to assist in research, testing and code review. All code portions suggested by AI and subsequently included in this codebase have been reviewed and modified by the owner.
+_This software was not written by AI. However, AI has been used to assist in research and code review. Code suggested by AI has been reviewed and modified by the owner._
