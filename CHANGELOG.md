@@ -1,5 +1,10 @@
 ## Release Notes
 
+- 0.8.0 *16 October 2026*
+    - Improve parallelism of forked processes on Linux and macOS.
+    - Enable `runProcessAsync()` on Linux.
+    - Fix data race in `runProces()` on Linux.
+    - Add hide/show cursor `Stdio.ShellCursor.hide()`/`Stdio.ShellCursor.show()`
 - 0.7.0 *6 October 2026*
     - Add first `Stdin` input functions.
     - Add `exitApp()` function to close apps cleanly.

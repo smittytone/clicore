@@ -1,17 +1,10 @@
-# clicore 0.7.0
+# clicore 0.8.0
 
 This repo contains core CLI functionality used by my Swift CLI apps and utilities.
 
 ## Installation (Swift PM)
 
 * Add the package as a dependency in Xcode or your project’s own `Package.swift` file.
-
-## Installation (git)
-
-* `cd /path/to/project`
-* `git submodule add https://github.com/smittytone/clicore`
-* Add the files you require to your project, eg. in Xcode.
-    * Make sure you select **Reference files in place**.
 
 ## Usage
 
@@ -33,3 +26,11 @@ Stdio.report(Stdio.ShellCursor.up(lines: 5))
 // Head output with emoji
 Stdio.settings.useEmoji = true
 ```
+
+## Ownership
+
+`clicore` code is © 2026, Tony Smith (@smittytone). It is licensed under the terms of the [MIT Licence](LICENCE.md).
+
+_AI was not used in the development of this software. This is a statement of plain fact, not of policy. AI tools may be used in future._
+
+_This software was not written by AI. However, AI has been used to assist in research and code review. Code suggested by AI has been reviewed and modified by the owner._

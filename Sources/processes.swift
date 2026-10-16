@@ -35,80 +35,86 @@ public struct Processes {
     /**
      Generic pre-Swift Concurrency macOS process creation and run function.
 
+     Works on macOS and Linux.
+
      - Parameters:
         - app:  The location of the app.
         - with: Array of arguments to pass to the app.
-        - in:   Directory in which to run the app.
+        - in:   Directory in which to run the app. This is not recommended 
+                to be used on Linux builds due to issues with the Linux version 
+                of Swift's Foundation library.
 
      - Returns: A tuple containing an error code (or zero for no error) and either
-     the STD OUT output on success, or STD ERR output on error.
+                the STD OUT output on success, or STD ERR output on error.
      */
     public static func runProcess(app path: String, with args: [String], in directory: URL? = nil) -> (Int32, String) {
 
         let task = Process()
         task.qualityOfService = .userInitiated
         task.executableURL = URL(fileURLWithPath: path)
+        if let dir = directory { task.currentDirectoryURL = dir }
         if args.count > 0 { task.arguments = args }
-        // FROM 0.5.1 -- use an app-specific queue rather than main
-        let stdioQueue = DispatchQueue(label: "com.clicore.queue")
-        // FROM 0.7.0 -- support the addition of a target directory
-        if let dir = directory {
-            task.currentDirectoryURL = dir
-        }
 
         // Pipe out the output to avoid putting it in the log
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
-        var outputText = ""
-        var errorText = ""
-
-        let stdOutHandle = stdOutPipe.fileHandleForReading
-        stdOutHandle.readabilityHandler = { fileHandle in
-            // If there's available output to the redirected file handle,
-            // get it and store it for processing later
-            let data = fileHandle.availableData
-            if let output = String(data: data, encoding: .utf8) {
-                stdioQueue.async {
-                    outputText += output
-                }
-            }
-        }
-
-        let stdErrHandle = stdErrPipe.fileHandleForReading
-        stdErrHandle.readabilityHandler = { fileHandle in
-            // If there's available output to the redirected file handle,
-            // get it and store it for processing later
-            let data = fileHandle.availableData
-            if let output = String(data: data, encoding: .utf8) {
-                stdioQueue.async {
-                    errorText += output
-                }
-            }
-        }
-
-        // Hook up the outputs
+        var errorData = Data()
+        var outputData = Data()
         task.standardOutput = stdOutPipe
         task.standardError = stdErrPipe
+
+#if os(macOS)
+        stdOutPipe.fileHandleForReading.readabilityHandler = { fileHandle in
+            // `readabilityHandler` operates in its own DispatchQueue
+            outputData.append(fileHandle.availableData)
+        }
+
+        stdErrPipe.fileHandleForReading.readabilityHandler = { fileHandle in
+            // `readabilityHandler` operates in its own DispatchQueue
+            errorData.append(fileHandle.availableData)
+        }
+#endif
 
         do {
             try task.run()
         } catch {
-            // NOTE Have to pass `1` as a literal here
-            return (1, error.localizedDescription)
+            return (EXIT_FAILURE, error.localizedDescription)
         }
 
-        // Block until the task has completed (short tasks ONLY)
+#if os(macOS)
         task.waitUntilExit()
 
         // Clear the 'data available' handlers
         // NOTE This seems to fix garbled data issues
-        stdOutHandle.readabilityHandler = nil
-        stdErrHandle.readabilityHandler = nil
+        stdOutPipe.fileHandleForReading.readabilityHandler = nil
+        stdErrPipe.fileHandleForReading.readabilityHandler = nil
+#else
+        // Gather stderr output on its own thread so neither pipe can full up and stall
+        let group = DispatchGroup()
+        DispatchQueue.global().async(group: group) {
+            if let data = try? stdErrPipe.fileHandleForReading.readToEnd() {
+                errorData = data
+            }
+        }
+
+        // Gather stdout output
+        if let data = try? stdOutPipe.fileHandleForReading.readToEnd() {
+            outputData = data
+        }
+
+        // Wait for threads and tasks to complete
+        group.wait()
+        task.waitUntilExit()
+#endif
+
+        // Convert output to text
+        let outputText = String(decoding: outputData, as: UTF8.self)
+        let errorText = String(decoding: errorData, as: UTF8.self)
 
         // Task completed successfully so return the standard output
         // TODO `outputText` will be empty if the called tool doesn't issue
         //      to `stdout` but only to `stderr`. `errorText` may be empty too.
-        if task.terminationStatus == 0 {
+        if task.terminationStatus == EXIT_SUCCESS {
             return (task.terminationStatus, !outputText.isEmpty ? outputText : errorText)
         }
 
@@ -117,132 +123,92 @@ public struct Processes {
     }
 
 
-#if os(macOS)
-    // NOTE This section is macOS only because it currently depends upon `FileHandle.bytes` which
-    //      is not yet available from the version of Foundation shipping with Swift on Linux.
-
-
     /**
      Swift Concurrency version of `runProcess()` to be used in async-await contexts.
 
-     - Requires: macOS 12+
+     Works on macOS and Linux: each pipe's `readabilityHandler` callbacks are bridged 
+     into an `AsyncStream`, so no thread is blocked while the process runs.
 
      - Parameters:
         - app:  The location of the app.
         - with: Array of arguments to pass to the app.
+        - in:   Directory in which to run the app. This is not recommended 
+                to be used on Linux builds due to issues with the Linux version 
+                of Swift's Foundation library.
 
-     - Returns: A tuple containing an error code (or zero for no error) and either
-     the STD OUT output on success, or STD ERR output on error.
+     - Returns: A tuple containing an error code (or zero for no error), 
+                the STD OUT output and the STD ERR output.
      */
-
-    @available(macOS 12.0, *)
     public static func runProcessAsync(app path: String, with args: [String], in directory: URL? = nil) async -> (Int32, String, String) {
 
         let task = Process()
         task.qualityOfService = .userInitiated
         task.executableURL = URL(fileURLWithPath: path)
-        if args.count > 0 { task.arguments = args }
 
-        // FROM 0.7.0
-        // Support the addition of a target directory
-        if let dir = directory {
-            task.currentDirectoryURL = dir
-        }
-        
-        let stdOutCollector = ChunkOutputCollector()
-        let stdErrCollector = ChunkOutputCollector()
+        // Pipe out the output to avoid putting it in the log
         let stdOutPipe = Pipe()
         let stdErrPipe = Pipe()
-        let stdOutHandle = stdOutPipe.fileHandleForReading
-        let stdErrHandle = stdErrPipe.fileHandleForReading
         task.standardOutput = stdOutPipe
         task.standardError = stdErrPipe
 
-        // Kick off chunk-based readers as concurrent tasks
-        let stdOutTask = Task {
-            try await readAllChunks(from: stdOutHandle) {
-                await stdOutCollector.appendOutput($0)
-            }
+        // FROM 0.7.0 -- support the addition of a target directory
+        if let dir = directory {
+            task.currentDirectoryURL = dir
         }
 
-        let stdErrTask = Task {
-            try await readAllChunks(from: stdErrHandle) {
-                await stdErrCollector.appendOutput($0)
-            }
+        if args.count > 0 {
+            task.arguments = args
+        }
+
+        // The stream buffers the exit status code, so it can't be missed if the process exits
+        // before we start waiting. We set the handler before `run()` for the same reason
+        let (exitCodes, exitCodesContinuation) = AsyncStream<Int32>.makeStream()
+        task.terminationHandler = { process in
+            exitCodesContinuation.yield(process.terminationStatus)
+            exitCodesContinuation.finish()
         }
 
         do {
             try task.run()
         } catch {
-            stdOutTask.cancel()
-            stdErrTask.cancel()
-            return (1, "", error.localizedDescription)
+            // Don't start reading: the pipes' write ends are still open in this process,
+            // so EOF would never arrive
+            return (EXIT_FAILURE, "", error.localizedDescription)
         }
 
-        // Wait for the process to exit off the main actor
-        await withCheckedContinuation { continuation in
-            task.terminationHandler = { _ in
-                continuation.resume()
-            }
+        // Drain both pipes while waiting for exit, so the child can never block on a full pipe
+        async let stdOutText = readText(from: stdOutPipe.fileHandleForReading)
+        async let stdErrText = readText(from: stdErrPipe.fileHandleForReading)
+
+        var status: Int32 = EXIT_FAILURE
+        for await exitCode in exitCodes {
+            status = exitCode
         }
 
-        // Let the readers drain any remaining buffered data, then stop them
-        _ = try? await stdOutTask.value
-        _ = try? await stdErrTask.value
-
-        return (task.terminationStatus, await stdOutCollector.text, await stdErrCollector.text)
+        return (status, await stdOutText, await stdErrText)
     }
 
 
     /**
-     Swift Concurrency-oriented actor structure that asynchronously collates substrings
-     (chunks) into a final string.
+     Read a file handle to EOF on a dedicated thread, and decode the result as UTF-8.
 
-     It is expected that `ChunkOutputCollector` is instanced within `runProcessAsync()` and
-     its `appendOutput()` called from within an async-await closure.
-
-     - Requires: macOS 12+
-
-     */
-    @available(macOS 12.0, *)
-    actor ChunkOutputCollector {
-
-        private(set) var text = ""
-
-        func appendOutput(_ chunk: String) {
-            text += chunk
-        }
-    }
-
-
-    /**
-     Swift Concurrency-oriented function to extract asynchronously collated substrings from STDIO
-     filehandles and collate them into a single string for subsequent processing.
-
-     It is expected that `readAllChunks()` is called from within `runProcessAsync()`.
-
-     - Requires: macOS 12+
+     The blocking read runs on its own `Thread`, not on the Swift Concurrency thread pool,
+     so the pool is never starved. Decoding once at the end, rather than per chunk, means
+     multi-byte characters split across reads are not lost.
 
      - Parameters:
         - from: The source file handle.
-        - into: An await-async closure that asynchronously collates a received byte-sequence as
-                a string into a larger string. See `ChunkOutputCollector` and `runProcessAsync()`.
-     */
-    @available(macOS 12.0, *)
-    private static func readAllChunks(from handle: FileHandle, into append: @escaping (String) async -> Void) async throws {
-        var buffer = [UInt8]()
-        for try await byte in handle.bytes {
-            buffer.append(byte)
-            if let str = String(bytes: buffer, encoding: .utf8) {
-                await append(str)
-                buffer.removeAll(keepingCapacity: true)
-            }
-        }
 
-        // Flush any trailing bytes that never formed a complete String
-        if !buffer.isEmpty, let str = String(bytes: buffer, encoding: .utf8) {
-            await append(str)
+     - Returns: The decoded text.
+     */
+    private static func readText(from handle: FileHandle) async -> String {
+
+        await withCheckedContinuation { continuation in
+            Thread {
+                let data = (try? handle.readToEnd()) ?? Data()
+                continuation.resume(returning: String(decoding: data, as: UTF8.self))
+            }.start()
         }
     }
-#endif
+
 }
