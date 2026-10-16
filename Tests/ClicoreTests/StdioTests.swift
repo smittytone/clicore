@@ -216,7 +216,7 @@ struct StdioTest {
     @Test func testSettingsDefaultPrefixWarning() {
 
         let settings = Stdio.Settings()
-        #expect(settings.prefixes.warning == "⚠️ ")
+        #expect(settings.prefixes.warning == "⚠️")
     }
 
 
