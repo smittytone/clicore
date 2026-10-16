@@ -1,6 +1,6 @@
 ## Release Notes
 
-- 0.8.0 *Unreleased*
+- 0.8.0 *16 October 2026*
     - Improve parallelism of forked processes on Linux and macOS.
     - Enable `runProcessAsync()` on Linux.
     - Fix data race in `runProces()` on Linux.
