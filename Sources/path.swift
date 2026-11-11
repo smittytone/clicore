@@ -89,6 +89,8 @@ public struct Path {
     /**
      Load a named file's contents into Data.
 
+     DEPRECATED
+
      - Parameters:
         - filePath: An absolute path to a file.
 
@@ -100,6 +102,70 @@ public struct Path {
         guard let data = try? Data(contentsOf: fileURL) else { return [] }
         return data.byteSlice
     }
+
+
+    /**
+     Load a named file's contents into Data.
+
+     - Parameters:
+        - filePath: An absolute path to a file.
+
+     - Returns: The file data, or an empty array on error.
+     */
+    public static func getFileContent(_ filePath: String) -> Result<ArraySlice<UInt8>, PathError> {
+
+        guard FileManager.default.fileExists(atPath: filePath) else { return .failure(PathError(code: .missingFile))}
+
+        let fileURL: URL
+        if #available(macOS 26.1, *) {
+            fileURL = URL(filePath: filePath)
+        } else {
+            fileURL = URL(fileURLWithPath: filePath)
+        }
+
+        do {
+            let data = try Data(contentsOf: fileURL)
+            return .success(data.byteSlice)
+        } catch {
+            return .failure(PathError(code: .badFileRead, text: error.localizedDescription))
+        }
+    }
+}
+
+
+public struct PathError: Error, LocalizedError {
+
+    public var code: PathErrorKind                      = .noError
+    public var text: String?                            = nil
+    public var errorDescription: String? {
+        switch self.code {
+            case .noError:
+                return nil
+            case .missingFile:
+                return "File doesn’t exist"
+            case .badFileRead:
+                if let message = text {
+                    return "Could not read file: \(message)"
+                }
+
+                return "Could not read file: unknown error"
+            case .fileAlreadyExists:
+                return "File already exists"
+        }
+    }
+}
+
+
+/*
+    Word file processing error codes.
+    NOTE We require raw values for these, for output as stderr codes.
+*/
+public enum PathErrorKind: Int, Error {
+
+    case noError                                    = 0
+    case missingFile                                = 1
+    case badFileRead                                = 2
+    case fileAlreadyExists                          = 12
 }
 
 
