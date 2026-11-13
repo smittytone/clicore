@@ -98,7 +98,7 @@ public struct Path {
      */
     public static func getFileContents(_ filepath: String) -> ArraySlice<UInt8> {
 
-        let fileURL = URL(fileURLWithPath: filepath)
+        let fileURL = URL(fileURLWithPath: filepath, isDirectory: false)
         guard let data = try? Data(contentsOf: fileURL) else { return [] }
         return data.byteSlice
     }
@@ -114,13 +114,15 @@ public struct Path {
      */
     public static func getFileContent(_ filePath: String) -> Result<ArraySlice<UInt8>, PathError> {
 
-        guard FileManager.default.fileExists(atPath: filePath) else { return .failure(PathError(code: .missingFile))}
+        guard doesPathReferenceDirectory(filePath) else {
+            return .failure(PathError(code: .missingFile))
+        }
 
         let fileURL: URL
-        if #available(macOS 26.1, *) {
-            fileURL = URL(filePath: filePath)
+        if #available(macOS 13, *) {
+            fileURL = URL(filePath: filePath, directoryHint: .notDirectory)
         } else {
-            fileURL = URL(fileURLWithPath: filePath)
+            fileURL = URL(fileURLWithPath: filePath, isDirectory: false)
         }
 
         do {
@@ -133,6 +135,9 @@ public struct Path {
 }
 
 
+/*
+ Parent for errors encountered during path operations.
+ */
 public struct PathError: Error, LocalizedError {
 
     public var code: PathErrorKind                      = .noError
@@ -157,8 +162,8 @@ public struct PathError: Error, LocalizedError {
 
 
 /*
-    Word file processing error codes.
-    NOTE We require raw values for these, for output as stderr codes.
+ Word file processing error codes.
+ NOTE We require raw values for these, for output as stderr codes.
 */
 public enum PathErrorKind: Int, Error {
 
