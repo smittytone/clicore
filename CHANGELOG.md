@@ -1,5 +1,7 @@
 ## Release Notes
 
+- 0.9.0 *13 November 2026*
+    - Add more robust `getFileContent()` as alternative to **deprecated** `getFileContents()`.
 - 0.8.0 *16 October 2026*
     - Improve parallelism of forked processes on Linux and macOS.
     - Enable `runProcessAsync()` on Linux.
