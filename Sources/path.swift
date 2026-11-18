@@ -114,7 +114,7 @@ public struct Path {
      */
     public static func getFileContent(_ filePath: String) -> Result<ArraySlice<UInt8>, PathError> {
 
-        guard doesPathReferenceDirectory(filePath) else {
+        guard !doesPathReferenceDirectory(filePath) else {
             return .failure(PathError(code: .missingFile))
         }
 
