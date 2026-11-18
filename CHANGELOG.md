@@ -1,6 +1,6 @@
 ## Release Notes
 
-- 0.9.1 *Unreleased*
+- 0.9.1 *18 November 2026*
     - Correct `getFileContent()` directory checking.
 - 0.9.0 *13 November 2026*
     - Add more robust `getFileContent()` as alternative to **deprecated** `getFileContents()`.
